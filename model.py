@@ -64,7 +64,12 @@ class Model(QSqlQueryModel):
     def set_line(self, datas):
         query = "INSERT INTO compta (Fournisseur, Designation, Prix, CodeCompta)"
         query += " VALUES "
-        query += "('"+datas[0]+"','"+datas[1]+"',"+datas[2]+","+datas[3]+")"
+        query += "('"\
+        +datas["fournisseur"]+"','"\
+        +datas["product"]+"',"\
+        +datas["price"]+",'"\
+        +datas["codeCompta"]\
+        +"')"
         print query
         q = self.query.exec_(query)
         print q

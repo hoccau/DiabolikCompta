@@ -59,15 +59,15 @@ class Form(QWidget):
             QMessageBox.warning(self, "Erreur", "Il faut entrer un nom de désignation")
         if self.price.text() == "":
             QMessageBox.warning(self, "Erreur", "Il faut entrer un Prix")
-        if self.codeCompta.CurrentText() == "":
+        if self.codeCompta.currentText() == "":
             QMessageBox.warning(self, "Erreur", "Il faut entrer un Code Compta")
 
         else:
-            record = []
-            record.append(self.fournisseur.currentText())
-            record.append(self.product.text())
-            record.append(self.price.text())
-            record.append(self.codeCompta.text())
+            record = {}
+            record["fournisseur"] = self.fournisseur.currentText()
+            record["product"] = self.product.text()
+            record["price"] = self.price.text()
+            record["codeCompta"] = self.codeCompta.currentText()
             self.model.set_line(record)
             print record
 
