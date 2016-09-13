@@ -100,7 +100,10 @@ class MainWindow(QMainWindow):
         name, code, ok = CodeComptaDialog.getCode()
         print name, code, ok
         if ok and name != "":
-            self.model.add_code_compta(code, name)
+            response = self.model.add_code_compta(code, name)
+            if response == "UNIQUE constraint failed: codecompta.CODE":
+                QMessageBox.warning(self, "Erreur", "Ce code existe déjà")
+                
 
 
                     

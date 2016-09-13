@@ -59,7 +59,7 @@ class Form(QWidget):
             QMessageBox.warning(self, "Erreur", "Il faut entrer un nom de désignation")
         if self.price.text() == "":
             QMessageBox.warning(self, "Erreur", "Il faut entrer un Prix")
-        if self.codeCompta.text() == "":
+        if self.codeCompta.CurrentText() == "":
             QMessageBox.warning(self, "Erreur", "Il faut entrer un Code Compta")
 
         else:

@@ -17,9 +17,10 @@ class Model(QSqlQueryModel):
         NOM varchar(20)\
         )")
         self.query.exec_("CREATE TABLE codecompta(\
-        CODE int,\
+        CODE int PRIMARY KEY,\
         NOM varchar(20)\
         )")
+        self.query.exec_("CREATE UNIQUE INDEX idx_CODE ON codecompta (CODE)")
 
     def connect_db(self, db_name):
         self.db.setDatabaseName(db_name)
@@ -50,7 +51,15 @@ class Model(QSqlQueryModel):
         query += "("+str(code)+",'"+name+"')"
         print "query:", query
         req = self.query.exec_(query)
-        return req
+        print "req:", req
+        if req == False:
+            return self.query.lastError().databaseText()
+        else:
+            return True
+
+        print self.query.lastError().text()
+        print self.query.lastError().driverText()
+        print self.query.lastError().databaseText()
 
     def set_line(self, datas):
         query = "INSERT INTO compta (Fournisseur, Designation, Prix, CodeCompta)"
