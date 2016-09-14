@@ -64,7 +64,10 @@ class Form(QWidget):
 
         else:
             record = {}
-            record["fournisseur"] = self.fournisseur.currentText()
+            #below : can be improved for faster ?
+            f_id = self.model.get_fournisseurs()[self.fournisseur.currentText()]
+            print f_id
+            record["fournisseur_id"] = f_id
             record["product"] = self.product.text()
             record["price"] = self.price.text()
             record["codeCompta"] = self.codeCompta.currentText()
@@ -73,7 +76,7 @@ class Form(QWidget):
 
     def refresh_fournisseurs(self):
         self.fournisseur.clear()
-        for fournisseur in self.model.get_fournisseurs():
+        for fournisseur, rowid in self.model.get_fournisseurs().items():
             self.fournisseur.addItem(fournisseur)
 
     def refresh_codeCompta(self):

@@ -103,8 +103,8 @@ class MainWindow(QMainWindow):
             response = self.model.add_code_compta(code, name)
             if response == "UNIQUE constraint failed: codecompta.CODE":
                 QMessageBox.warning(self, "Erreur", "Ce code existe déjà")
-                
-
+            else:
+                self.form.refresh_codeCompta()
 
                     
 if __name__ == '__main__':

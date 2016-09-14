@@ -8,19 +8,23 @@ class Model(QSqlQueryModel):
 
     def create_db(self, db_name):
         self.connect_db(db_name)
-        self.query.exec_("CREATE TABLE compta(\
-        Fournisseur varchar(20),\
-        Designation varchar(20),\
-        Prix real,\
-        CodeCompta int NOT NULL)")
         self.query.exec_("CREATE TABLE fournisseurs(\
         NOM varchar(20)\
         )")
+        req = self.query.exec_("CREATE TABLE compta(\
+        Fournisseur_id integer NOT NULL,\
+        Designation varchar(20),\
+        Prix real,\
+        CodeCompta int NOT NULL,\
+        FOREIGN KEY (Fournisseur_id) REFERENCES fournisseurs(rowid))")
+        if req == False:
+            print self.query.lastError().text()
         self.query.exec_("CREATE TABLE codecompta(\
         CODE int PRIMARY KEY,\
         NOM varchar(20)\
         )")
         self.query.exec_("CREATE UNIQUE INDEX idx_CODE ON codecompta (CODE)")
+        self.query.exec_("CREATE UNIQUE INDEX idx_NOM ON fournisseurs (NOM)")
 
     def connect_db(self, db_name):
         self.db.setDatabaseName(db_name)
@@ -28,10 +32,10 @@ class Model(QSqlQueryModel):
         self.query = QSqlQuery()
 
     def get_fournisseurs(self):
-        fournisseurs = []
-        self.query.exec_("SELECT NOM FROM fournisseurs")
+        fournisseurs = {}
+        self.query.exec_("SELECT NOM, ROWID FROM fournisseurs")
         while self.query.next():
-            fournisseurs.append(self.query.value(0))
+            fournisseurs[self.query.value(0)] = self.query.value(1)
         return fournisseurs
 
     def get_codeCompta(self):
@@ -62,15 +66,15 @@ class Model(QSqlQueryModel):
         print self.query.lastError().databaseText()
 
     def set_line(self, datas):
-        query = "INSERT INTO compta (Fournisseur, Designation, Prix, CodeCompta)"
+        query = "INSERT INTO compta (Fournisseur_id, Designation, Prix, CodeCompta)"
         query += " VALUES "
-        query += "('"\
-        +datas["fournisseur"]+"','"\
+        query += "("\
+        +str(datas["fournisseur_id"])+",'"\
         +datas["product"]+"',"\
         +datas["price"]+",'"\
         +datas["codeCompta"]\
         +"')"
         print query
         q = self.query.exec_(query)
-        print q
+        print "query success:", q
 
