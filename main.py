@@ -24,17 +24,24 @@ class MainWindow(QMainWindow):
         exitAction = QAction(QIcon('exit.png'), '&Exit', self)
         exitAction.setShortcut('Ctrl+Q')
         exitAction.triggered.connect(qApp.quit)
-        viewdbAction = QAction(QIcon('db.png'), '&Voir', self)
-        viewdbAction.triggered.connect(self.change_view)
+        openAction = QAction(QIcon('open.png'), '&Open', self)
+        openAction.setShortcut('Ctrl+O')
+        openAction.triggered.connect(self.open_db)
+        viewdbAction = QAction(QIcon('db.png'), '&Base de données', self)
+        viewdbAction.triggered.connect(self.switch_to_db_view)
+        viewFormAction = QAction(QIcon('form.png'), '&Formulaire', self)
+        viewFormAction.triggered.connect(self.switch_to_form_view)
         addFournisseurAction = QAction(QIcon('fournisseur.png'), '&Fournisseur', self)
         addFournisseurAction.triggered.connect(self.addFournisseur)
         addCodeComptaAction = QAction(QIcon('codecompta.png'), '&Code compta', self)
         addCodeComptaAction.triggered.connect(self.addCodeCompta)
 
         fileMenu = menubar.addMenu('&Fichier')
+        fileMenu.addAction(openAction)
         fileMenu.addAction(exitAction)
         view_menu = menubar.addMenu('&Vue')
         view_menu.addAction(viewdbAction)
+        view_menu.addAction(viewFormAction)
         addMenu = menubar.addMenu('&Ajouter')
         addMenu.addAction(addFournisseurAction)
         addMenu.addAction(addCodeComptaAction)
@@ -46,6 +53,14 @@ class MainWindow(QMainWindow):
         self.retrieve_db()
         self.form = Form(self)
         self.setCentralWidget(self.form)
+
+        self.mainView = QTableView(self)
+        self.mainView.setModel(self.model.qt_table_compta)
+
+    def open_db(self):
+        file_name = QFileDialog.getOpenFileName(self, 'Open File')
+        if file_name[0]:
+            self.model.connect_db(file_name[0])
 
     def retrieve_db(self):
         files = os.listdir('./')
@@ -83,8 +98,14 @@ class MainWindow(QMainWindow):
                 name = name + '.db'
             return name
 
-    def change_view(self):
-        print "changed!"
+    def switch_to_form_view(self):
+        self.form = Form(self) #because: http://stackoverflow.com/questions/17914960/pyqt-runtimeerror-wrapped-c-c-object-has-been-deleted
+        self.setCentralWidget(self.form)
+
+    def switch_to_db_view(self):
+        self.mainView = QTableView(self)
+        self.mainView.setModel(self.model.qt_table_compta)
+        self.setCentralWidget(self.mainView)
 
     def addFournisseur(self):
         name, ok = QInputDialog.getText(self, 'Input Dialog',

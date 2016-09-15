@@ -33,6 +33,9 @@ class Form(QWidget):
         nameCodeCompta = QLabel("Code Compta")
         self.codeCompta = QComboBox()
         self.refresh_codeCompta()
+        nameTypePayement = QLabel("Type de payement")
+        self.typePayement = QComboBox()
+        self.typePayement.addItems(self.model.get_typesPayement().keys())
 
         self.submitButton = QPushButton("Valider")
 
@@ -46,7 +49,9 @@ class Form(QWidget):
         grid.addWidget(self.price, 3, 1)
         grid.addWidget(nameCodeCompta, 4, 0)
         grid.addWidget(self.codeCompta, 4, 1)
-        grid.addWidget(self.submitButton, 5, 0)
+        grid.addWidget(nameTypePayement, 5, 0)
+        grid.addWidget(self.typePayement, 5, 1)
+        grid.addWidget(self.submitButton, 6, 0)
 
         self.setLayout(grid)
 
@@ -55,22 +60,24 @@ class Form(QWidget):
     def verif_datas(self):
         if self.fournisseur.currentText() == "":
             QMessageBox.warning(self, "Erreur", "Il faut entrer un nom de fournisseur")
-        if self.product.text() == "":
+        elif self.product.text() == "":
             QMessageBox.warning(self, "Erreur", "Il faut entrer un nom de désignation")
-        if self.price.text() == "":
+        elif self.price.text() == "":
             QMessageBox.warning(self, "Erreur", "Il faut entrer un Prix")
-        if self.codeCompta.currentText() == "":
+        elif self.codeCompta.currentText() == "":
             QMessageBox.warning(self, "Erreur", "Il faut entrer un Code Compta")
 
         else:
             record = {}
             #below : can be improved for faster ?
             f_id = self.model.get_fournisseurs()[self.fournisseur.currentText()]
-            print f_id
+            p_id = self.model.get_typesPayement()[self.typePayement.currentText()]
+            c_id = self.model.get_codesCompta()[self.codeCompta.currentText()]
             record["fournisseur_id"] = f_id
             record["product"] = self.product.text()
             record["price"] = self.price.text()
-            record["codeCompta"] = self.codeCompta.currentText()
+            record["codeCompta_id"] = c_id
+            record["typePayement_id"] = p_id
             self.model.set_line(record)
             print record
 
@@ -81,8 +88,13 @@ class Form(QWidget):
 
     def refresh_codeCompta(self):
         self.codeCompta.clear()
-        for codeCompta in self.model.get_codeCompta():
-            self.codeCompta.addItem(codeCompta[0])
+        for codeCompta, code in self.model.get_codesCompta().items():
+            self.codeCompta.addItem(codeCompta)
+    
+    def refresh_typePayement(self):
+        self.typePayement.clear()
+        for typePayement, rowid in self.model.get_typesPayement().items():
+            self.codeCompta.addItem(typePayement)
 
 class CodeComptaDialog(QDialog):
     def __init__(self, parent=None):
