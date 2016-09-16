@@ -125,3 +125,4 @@ class CodeComptaDialog(QDialog):
         return (dialog.name.text(), dialog.code.value(), result == QDialog.Accepted)
 
 
+        self.qt_table_compta = QSqlTableModel(self, self.db).setTable('compta')

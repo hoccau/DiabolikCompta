@@ -11,6 +11,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtGui import QIcon
 from model import Model
 from views import *
+from PyQt5.QtSql import QSqlRelationalDelegate
 
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
@@ -56,6 +57,7 @@ class MainWindow(QMainWindow):
 
         self.mainView = QTableView(self)
         self.mainView.setModel(self.model.qt_table_compta)
+        self.mainView.setItemDelegate(QSqlRelationalDelegate())
 
     def open_db(self):
         file_name = QFileDialog.getOpenFileName(self, 'Open File')
@@ -112,10 +114,12 @@ class MainWindow(QMainWindow):
             'Nom du fournisseur:')
         if ok and name != "":
             res = self.model.add_fournisseur(name)
-            if res:
+            if res == True:
                 self.form.refresh_fournisseurs()
+            elif res == "UNIQUE constraint failed: fournisseurs.NOM":
+                QMessageBox.warning(self, "Erreur", "Ce nom existe déjà.")
             else:
-                QMessageBox.warning(self, "Erreur", "Erreur de requette dans la base")
+                QMessageBox.warning(self, "Erreur", "Erreur de requette inconnue!")
 
     def addCodeCompta(self):
         name, code, ok = CodeComptaDialog.getCode()

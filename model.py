@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*- 
 
-from PyQt5.QtSql import QSqlQueryModel, QSqlDatabase, QSqlQuery, QSqlTableModel
+from PyQt5.QtSql import QSqlQueryModel, QSqlDatabase, QSqlQuery, QSqlRelationalTableModel, QSqlRelation
 
 class Model(QSqlQueryModel):
     def __init__(self, parent=None):
@@ -15,6 +15,7 @@ class Model(QSqlQueryModel):
         NOM varchar(20)\
         )")
         req = self.query.exec_("CREATE TABLE compta(\
+        id integer PRIMARY KEY,\
         Fournisseur_id integer NOT NULL,\
         Designation varchar(20),\
         Prix real,\
@@ -42,9 +43,22 @@ class Model(QSqlQueryModel):
         self.db.setDatabaseName(db_name)
         self.db.open()
         self.query = QSqlQuery()
-        self.qt_table_compta = QSqlTableModel(self, self.db)
+        self.create_table_model()
+
+    def create_table_model(self):
+        self.qt_table_compta = QSqlRelationalTableModel(self, self.db)
         self.qt_table_compta.setTable('compta')
+        f_rel =  QSqlRelation("fournisseurs","rowid","NOM")
+        c_rel =  QSqlRelation("codecompta","code","NOM")
+        p_rel = QSqlRelation("type_payement","rowid","NOM")
+        print "relation valid:", f_rel.isValid(), f_rel.indexColumn()
+        print "relation valid:", c_rel.isValid(), c_rel.indexColumn()
+        print "relation valid:", p_rel.isValid(), p_rel.indexColumn()
+        self.qt_table_compta.setRelation(1, f_rel)
+        self.qt_table_compta.setRelation(4, c_rel)
+        self.qt_table_compta.setRelation(5, p_rel)
         self.qt_table_compta.select()
+        self.compta_view()
 
     def get_fournisseurs(self):
         fournisseurs = {}
@@ -69,7 +83,11 @@ class Model(QSqlQueryModel):
 
     def add_fournisseur(self, name):
         req = self.query.exec_("insert into fournisseurs values('"+name+"')")
-        return req
+        if req == False:
+            print self.query.lastError().databaseText()
+            return self.query.lastError().databaseText()
+        else:
+            return req
 
     def add_code_compta(self, code, name):
         query = "INSERT INTO codecompta (CODE, NOM)"
@@ -100,4 +118,5 @@ class Model(QSqlQueryModel):
         print query
         q = self.query.exec_(query)
         print "query success:", q
+
 

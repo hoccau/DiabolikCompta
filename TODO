@@ -1,8 +1,8 @@
 TODO
 
- * Vues de la base
- * ...
+ * BUG : plantage lorsqu'on est sur la vue database et que l'on tente d'entrer un fournisseur
 
 DONE
 
  * Eviter la redondance de codes compta (chaque code compta doit être unique)
+ * Vue de la base
