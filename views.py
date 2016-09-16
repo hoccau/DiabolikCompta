@@ -82,7 +82,6 @@ class Form(QDialog):
             record["codeCompta_id"] = c_id
             record["typePayement_id"] = p_id
             self.model.set_line(record)
-            print record
 
     def refresh_fournisseurs(self):
         self.fournisseur.clear()
