@@ -58,7 +58,6 @@ class Model(QSqlQueryModel):
         self.qt_table_compta.setRelation(4, c_rel)
         self.qt_table_compta.setRelation(5, p_rel)
         self.qt_table_compta.select()
-        self.compta_view()
 
     def get_fournisseurs(self):
         fournisseurs = {}

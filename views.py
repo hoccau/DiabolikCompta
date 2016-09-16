@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QRegExp
 from PyQt5.QtGui import QRegExpValidator
 
-class Form(QWidget):
+class Form(QDialog):
     def __init__(self, parent=None):
         super(Form, self).__init__(parent)
 
@@ -37,7 +37,8 @@ class Form(QWidget):
         self.typePayement = QComboBox()
         self.typePayement.addItems(self.model.get_typesPayement().keys())
 
-        self.submitButton = QPushButton("Valider")
+        self.submitButton = QPushButton("Enregistrer")
+        quitButton = QDialogButtonBox(QDialogButtonBox.Cancel, self)
 
         grid = QGridLayout()
 
@@ -52,10 +53,12 @@ class Form(QWidget):
         grid.addWidget(nameTypePayement, 5, 0)
         grid.addWidget(self.typePayement, 5, 1)
         grid.addWidget(self.submitButton, 6, 0)
+        grid.addWidget(quitButton, 6, 1)
 
         self.setLayout(grid)
 
         self.submitButton.clicked.connect(self.verif_datas)
+        quitButton.rejected.connect(self.reject)
 
     def verif_datas(self):
         if self.fournisseur.currentText() == "":

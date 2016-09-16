@@ -30,8 +30,8 @@ class MainWindow(QMainWindow):
         openAction.triggered.connect(self.open_db)
         viewdbAction = QAction(QIcon('db.png'), '&Base de données', self)
         viewdbAction.triggered.connect(self.switch_to_db_view)
-        viewFormAction = QAction(QIcon('form.png'), '&Formulaire', self)
-        viewFormAction.triggered.connect(self.switch_to_form_view)
+        addFormAction = QAction(QIcon('form.png'), '&Ligne de comptabilité', self)
+        addFormAction.triggered.connect(self.addDatas)
         addFournisseurAction = QAction(QIcon('fournisseur.png'), '&Fournisseur', self)
         addFournisseurAction.triggered.connect(self.addFournisseur)
         addCodeComptaAction = QAction(QIcon('codecompta.png'), '&Code compta', self)
@@ -41,9 +41,10 @@ class MainWindow(QMainWindow):
         fileMenu.addAction(openAction)
         fileMenu.addAction(exitAction)
         view_menu = menubar.addMenu('&Vue')
-        view_menu.addAction(viewdbAction)
-        view_menu.addAction(viewFormAction)
+        #view_menu.addAction(viewdbAction)
+        #view_menu.addAction(viewFormAction)
         addMenu = menubar.addMenu('&Ajouter')
+        addMenu.addAction(addFormAction)
         addMenu.addAction(addFournisseurAction)
         addMenu.addAction(addCodeComptaAction)
 
@@ -53,11 +54,11 @@ class MainWindow(QMainWindow):
         self.model = Model(self)
         self.retrieve_db()
         self.form = Form(self)
-        self.setCentralWidget(self.form)
 
         self.mainView = QTableView(self)
         self.mainView.setModel(self.model.qt_table_compta)
         self.mainView.setItemDelegate(QSqlRelationalDelegate())
+        self.setCentralWidget(self.mainView)
 
     def open_db(self):
         file_name = QFileDialog.getOpenFileName(self, 'Open File')
@@ -108,6 +109,9 @@ class MainWindow(QMainWindow):
         self.mainView = QTableView(self)
         self.mainView.setModel(self.model.qt_table_compta)
         self.setCentralWidget(self.mainView)
+
+    def addDatas(self):
+        self.form.show()
 
     def addFournisseur(self):
         name, ok = QInputDialog.getText(self, 'Input Dialog',
