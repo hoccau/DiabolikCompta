@@ -13,7 +13,6 @@ class Form(QDialog):
         self.model = parent.model
         self.fournisseurs = []
 
-        print self.fournisseurs
         comp = QCompleter(self.fournisseurs)
         
         nameFournisseur = QLabel("Fournisseur:")
@@ -82,6 +81,7 @@ class Form(QDialog):
             record["codeCompta_id"] = c_id
             record["typePayement_id"] = p_id
             self.model.set_line(record)
+            self.model.update_table_model()
 
     def refresh_fournisseurs(self):
         self.fournisseur.clear()

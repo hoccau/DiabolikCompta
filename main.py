@@ -49,6 +49,7 @@ class MainWindow(QMainWindow):
         addMenu.addAction(addCodeComptaAction)
 
         self.statusBar().showMessage('Ready')
+        self.setMinimumSize(700,300)
         self.show()
 
         self.model = Model(self)
@@ -120,6 +121,7 @@ class MainWindow(QMainWindow):
             res = self.model.add_fournisseur(name)
             if res == True:
                 self.form.refresh_fournisseurs()
+                self.model.update_table_model()
             elif res == "UNIQUE constraint failed: fournisseurs.NOM":
                 QMessageBox.warning(self, "Erreur", "Ce nom existe déjà.")
             else:
@@ -134,6 +136,7 @@ class MainWindow(QMainWindow):
                 QMessageBox.warning(self, "Erreur", "Ce code existe déjà")
             else:
                 self.form.refresh_codeCompta()
+                self.model.update_table_model()
 
                     
 if __name__ == '__main__':

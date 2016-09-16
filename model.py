@@ -46,17 +46,14 @@ class Model(QSqlQueryModel):
         self.db.setDatabaseName(db_name)
         self.db.open()
         self.query = QSqlQuery()
-        self.create_table_model()
-
-    def create_table_model(self):
         self.qt_table_compta = QSqlRelationalTableModel(self, self.db)
+        self.update_table_model()
+
+    def update_table_model(self):
         self.qt_table_compta.setTable('compta')
         f_rel = QSqlRelation("fournisseurs","id","NOM")
         c_rel = QSqlRelation("codecompta","code","NOM")
         p_rel = QSqlRelation("type_payement","id","NOM")
-        print "relation valid:", f_rel.isValid(), f_rel.indexColumn()
-        print "relation valid:", c_rel.isValid(), c_rel.indexColumn()
-        print "relation valid:", p_rel.isValid(), p_rel.indexColumn()
         self.qt_table_compta.setRelation(1, f_rel)
         self.qt_table_compta.setRelation(4, c_rel)
         self.qt_table_compta.setRelation(5, p_rel)
@@ -106,10 +103,6 @@ class Model(QSqlQueryModel):
             return self.query.lastError().databaseText()
         else:
             return True
-
-        print self.query.lastError().text()
-        print self.query.lastError().driverText()
-        print self.query.lastError().databaseText()
 
     def set_line(self, datas):
         query = "INSERT INTO compta (Fournisseur_id, Designation, Prix, CodeCompta, TypePayement_id)"

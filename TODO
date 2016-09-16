@@ -1,8 +1,14 @@
 TODO
 
- * BUG : plantage lorsqu'on est sur la vue database et que l'on tente d'entrer un fournisseur
+ * Pouvoir supprimer une ligne
+ * champs "Cumul du prix"
+ * champs "Date"
+ * Table contenant les infos du centre
+ * Filtres, rapports...
 
 DONE
 
  * Eviter la redondance de codes compta (chaque code compta doit être unique)
  * Vue de la base
+ * BUG : plantage lorsqu'on est sur la vue database et que l'on tente d'entrer un fournisseur
+ * Rafraichir la table quand on entre des données via formulaire
