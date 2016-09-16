@@ -35,29 +35,33 @@ class Form(QDialog):
         nameTypePayement = QLabel("Type de payement")
         self.typePayement = QComboBox()
         self.typePayement.addItems(self.model.get_typesPayement().keys())
+        self.date = QCalendarWidget()
 
         self.submitButton = QPushButton("Enregistrer")
-        quitButton = QDialogButtonBox(QDialogButtonBox.Cancel, self)
+        quitButton = QPushButton("Fermer")
 
-        grid = QGridLayout()
+        self.grid = QGridLayout()
 
-        grid.addWidget(nameFournisseur, 1,0 )
-        grid.addWidget(self.fournisseur, 1,1)
-        grid.addWidget(nameProduct, 2, 0)
-        grid.addWidget(self.product, 2, 1)
-        grid.addWidget(namePrice, 3, 0)
-        grid.addWidget(self.price, 3, 1)
-        grid.addWidget(nameCodeCompta, 4, 0)
-        grid.addWidget(self.codeCompta, 4, 1)
-        grid.addWidget(nameTypePayement, 5, 0)
-        grid.addWidget(self.typePayement, 5, 1)
-        grid.addWidget(self.submitButton, 6, 0)
-        grid.addWidget(quitButton, 6, 1)
+        self.field_index = 0
+        self.add_field("Fournisseur:", self.fournisseur)
+        self.add_field("Date:", self.date)
+        self.add_field("Désignation", self.product)
+        self.add_field("Prix (€):", self.price)
+        self.add_field("Code Compta", self.codeCompta)
+        self.add_field("Type de payement", self.typePayement)
+        self.field_index += 1
+        self.grid.addWidget(self.submitButton, self.field_index, 0)
+        self.grid.addWidget(quitButton, self.field_index, 1)
 
-        self.setLayout(grid)
+        self.setLayout(self.grid)
 
         self.submitButton.clicked.connect(self.verif_datas)
-        quitButton.rejected.connect(self.reject)
+        quitButton.clicked.connect(self.reject)
+    
+    def add_field(self, label_name, widget):
+        self.field_index += 1
+        self.grid.addWidget(QLabel(label_name), self.field_index, 0)
+        self.grid.addWidget(widget, self.field_index, 1)
 
     def verif_datas(self):
         if self.fournisseur.currentText() == "":
@@ -76,6 +80,7 @@ class Form(QDialog):
             p_id = self.model.get_typesPayement()[self.typePayement.currentText()]
             c_id = self.model.get_codesCompta()[self.codeCompta.currentText()]
             record["fournisseur_id"] = f_id
+            record["date"] = self.date.selectedDate().toString('yyyy-MM-dd')
             record["product"] = self.product.text()
             record["price"] = self.price.text()
             record["codeCompta_id"] = c_id

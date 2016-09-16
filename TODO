@@ -1,10 +1,10 @@
 TODO
 
  * Pouvoir supprimer une ligne
- * champs "Cumul du prix"
- * champs "Date"
- * Table contenant les infos du centre
+ * Table contenant les infos du centre de vacances
  * Filtres, rapports...
+ * Empecher l'edition de l'id de la table compta
+ * inverser l'ordre de la table (dernier enregistrement en premier)
 
 DONE
 
@@ -12,3 +12,5 @@ DONE
  * Vue de la base
  * BUG : plantage lorsqu'on est sur la vue database et que l'on tente d'entrer un fournisseur
  * Rafraichir la table quand on entre des données via formulaire
+ * champs "Cumul du prix"
+ * champs "Date"

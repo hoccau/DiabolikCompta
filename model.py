@@ -30,8 +30,10 @@ class Model(QSqlQueryModel):
         req = self.query.exec_("CREATE TABLE compta(\
         id integer PRIMARY KEY,\
         Fournisseur_id integer NOT NULL,\
+        Date varchar(10),\
         Designation varchar(20),\
         Prix real,\
+        Cumul real,\
         CodeCompta int NOT NULL,\
         TypePayement_id int NOT NULL,\
         FOREIGN KEY (Fournisseur_id) REFERENCES fournisseurs(id),\
@@ -55,13 +57,13 @@ class Model(QSqlQueryModel):
         c_rel = QSqlRelation("codecompta","code","NOM")
         p_rel = QSqlRelation("type_payement","id","NOM")
         self.qt_table_compta.setRelation(1, f_rel)
-        self.qt_table_compta.setRelation(4, c_rel)
-        self.qt_table_compta.setRelation(5, p_rel)
+        self.qt_table_compta.setRelation(6, c_rel)
+        self.qt_table_compta.setRelation(7, p_rel)
         self.qt_table_compta.select()
         self.qt_table_compta.setHeaderData(0, Qt.Horizontal, "Identification")
         self.qt_table_compta.setHeaderData(1, Qt.Horizontal, "Fournisseur")
-        self.qt_table_compta.setHeaderData(4, Qt.Horizontal, "Code")
-        self.qt_table_compta.setHeaderData(5, Qt.Horizontal, "Moyen de payement")
+        self.qt_table_compta.setHeaderData(6, Qt.Horizontal, "Code")
+        self.qt_table_compta.setHeaderData(7, Qt.Horizontal, "Moyen de payement")
 
     def get_fournisseurs(self):
         fournisseurs = {}
@@ -105,17 +107,30 @@ class Model(QSqlQueryModel):
             return True
 
     def set_line(self, datas):
-        query = "INSERT INTO compta (Fournisseur_id, Designation, Prix, CodeCompta, TypePayement_id)"
+        query = "INSERT INTO compta (Fournisseur_id,  Date, Designation, Prix, Cumul, CodeCompta, TypePayement_id)"
         query += " VALUES "
         query += "("\
         +str(datas["fournisseur_id"])+",'"\
+        +str(datas["date"])+"','"\
         +datas["product"]+"',"\
         +datas["price"]+","\
+        +str(self.compute_cumul())+","\
         +str(datas["codeCompta_id"])+","\
         +str(datas["typePayement_id"])\
         +")"
         print query
         q = self.query.exec_(query)
         print "query success:", q
+        if q == False:
+            print self.query.lastError().databaseText()
+
+    def compute_cumul(self):
+        res = self.query.exec_("SELECT Prix FROM compta")
+        cumul = 0
+        while self.query.next():
+            print self.query.value(0)
+            cumul += self.query.value(0)
+        return cumul
+        
 
 

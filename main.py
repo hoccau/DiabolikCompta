@@ -28,8 +28,8 @@ class MainWindow(QMainWindow):
         openAction = QAction(QIcon('open.png'), '&Open', self)
         openAction.setShortcut('Ctrl+O')
         openAction.triggered.connect(self.open_db)
-        viewdbAction = QAction(QIcon('db.png'), '&Base de données', self)
-        viewdbAction.triggered.connect(self.switch_to_db_view)
+        cumAction = QAction(QIcon('db.png'), '&Cumul', self)
+        cumAction.triggered.connect(self.show_cumul)
         addFormAction = QAction(QIcon('form.png'), '&Ligne de comptabilité', self)
         addFormAction.triggered.connect(self.addDatas)
         addFournisseurAction = QAction(QIcon('fournisseur.png'), '&Fournisseur', self)
@@ -41,7 +41,7 @@ class MainWindow(QMainWindow):
         fileMenu.addAction(openAction)
         fileMenu.addAction(exitAction)
         view_menu = menubar.addMenu('&Vue')
-        #view_menu.addAction(viewdbAction)
+        view_menu.addAction(cumAction)
         #view_menu.addAction(viewFormAction)
         addMenu = menubar.addMenu('&Ajouter')
         addMenu.addAction(addFormAction)
@@ -60,6 +60,9 @@ class MainWindow(QMainWindow):
         self.mainView.setModel(self.model.qt_table_compta)
         self.mainView.setItemDelegate(QSqlRelationalDelegate())
         self.setCentralWidget(self.mainView)
+
+    def show_cumul(self):
+        self.model.compute_cumul()
 
     def open_db(self):
         file_name = QFileDialog.getOpenFileName(self, 'Open File')
