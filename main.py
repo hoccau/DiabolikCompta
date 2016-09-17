@@ -30,6 +30,10 @@ class MainWindow(QMainWindow):
         openAction.triggered.connect(self.open_db)
         cumAction = QAction(QIcon('db.png'), '&Cumul', self)
         cumAction.triggered.connect(self.show_cumul)
+        showRowAction = QAction(QIcon('db.png'), '&Row', self)
+        showRowAction.triggered.connect(self.show_row)
+        delRowAction = QAction(QIcon('db.png'), '&Supprimer la ligne', self)
+        delRowAction.triggered.connect(self.remove_current_row)
         addFormAction = QAction(QIcon('form.png'), '&Ligne de comptabilité', self)
         addFormAction.triggered.connect(self.addDatas)
         addFournisseurAction = QAction(QIcon('fournisseur.png'), '&Fournisseur', self)
@@ -40,8 +44,11 @@ class MainWindow(QMainWindow):
         fileMenu = menubar.addMenu('&Fichier')
         fileMenu.addAction(openAction)
         fileMenu.addAction(exitAction)
+        edit_menu = menubar.addMenu('&Édition')
+        edit_menu.addAction(delRowAction)
         view_menu = menubar.addMenu('&Vue')
         view_menu.addAction(cumAction)
+        view_menu.addAction(showRowAction)
         #view_menu.addAction(viewFormAction)
         addMenu = menubar.addMenu('&Ajouter')
         addMenu.addAction(addFormAction)
@@ -49,7 +56,7 @@ class MainWindow(QMainWindow):
         addMenu.addAction(addCodeComptaAction)
 
         self.statusBar().showMessage('Ready')
-        self.setMinimumSize(700,300)
+        self.setMinimumSize(850,300)
         self.show()
 
         self.model = Model(self)
@@ -61,8 +68,23 @@ class MainWindow(QMainWindow):
         self.mainView.setItemDelegate(QSqlRelationalDelegate())
         self.setCentralWidget(self.mainView)
 
+    def remove_current_row(self):
+        row = self.mainView.currentIndex().row()
+        model = self.mainView.currentIndex().model()
+        row_id = model.index(row, 0).data()
+        print "row to remove:", row
+        self.model.qt_table_compta.removeRow(row)
+        self.model.update_cumul(row_id + 1)
+        self.model.update_table_model()
+
+    def show_row(self):
+        row = self.mainView.currentIndex().row()
+        model = self.mainView.currentIndex().model()
+        print "id:", model.index(row,0).data(), "m2:", m2
+        print "row", row
+        
     def show_cumul(self):
-        self.model.compute_cumul()
+        self.model.update_cumul(3)
 
     def open_db(self):
         file_name = QFileDialog.getOpenFileName(self, 'Open File')

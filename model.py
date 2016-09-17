@@ -107,6 +107,7 @@ class Model(QSqlQueryModel):
             return True
 
     def set_line(self, datas):
+        last_cumul = self.get_last_cumul()
         query = "INSERT INTO compta (Fournisseur_id,  Date, Designation, Prix, Cumul, CodeCompta, TypePayement_id)"
         query += " VALUES "
         query += "("\
@@ -114,7 +115,7 @@ class Model(QSqlQueryModel):
         +str(datas["date"])+"','"\
         +datas["product"]+"',"\
         +datas["price"]+","\
-        +str(self.compute_cumul())+","\
+        +str(last_cumul + float(datas["price"]))+","\
         +str(datas["codeCompta_id"])+","\
         +str(datas["typePayement_id"])\
         +")"
@@ -124,13 +125,52 @@ class Model(QSqlQueryModel):
         if q == False:
             print self.query.lastError().databaseText()
 
-    def compute_cumul(self):
+    def get_last_cumul(self):
+        query = "SELECT cumul FROM compta ORDER BY id DESC LIMIT 1"
+        req = self.query.exec_(query)
+        last_cumul = 0
+        while self.query.next():
+            last_cumul = self.query.value(0)
+        return last_cumul
+
+    def compute_cumul_sum(self):
         res = self.query.exec_("SELECT Prix FROM compta")
         cumul = 0
         while self.query.next():
-            print self.query.value(0)
             cumul += self.query.value(0)
         return cumul
         
+    def compute_cumul_eff(self, line_id):
+        query = "SELECT cumul FROM compta WHERE ID < "\
+        +str(line_id)+" ORDER BY id DESC LIMIT 1"
+        print "query:", query
+        req = self.query.exec_(query)
+        if req == False:
+            print self.query.lastError().databaseText()
+        while self.query.next():
+            last_cumul = self.query.value(0)
+        return last_cumul + price
+        
+    def get_last_id(self):
+        query = "SELECT id FROM compta ORDER BY id DESC LIMIT 1"
+        self.query.exec_(query)
+        while self.query.next():
+            return self.query.value(0)
+
+    def update_cumul(self, begin_row_id):
+        last_id = self.get_last_id()
+        for row_id in range(begin_row_id, int(last_id) +1):
+            self.query.exec_("SELECT prix FROM compta WHERE id = "+str(row_id))
+            price = 0
+            while self.query.next():
+                price = self.query.value(0)
+            self.query.exec_("SELECT cumul FROM compta WHERE id < "+str(row_id)+" ORDER BY id DESC LIMIT 1")
+            while self.query.next():
+                last_cumul = self.query.value(0)
+            cumul = price + last_cumul
+            print "cumul:", last_cumul, " prix:", price
+            self.query.exec_(
+                "UPDATE compta SET cumul = '"+str(cumul)+"' WHERE id = "+str(row_id)
+                )
 
 
