@@ -22,24 +22,13 @@ class MainWindow(QMainWindow):
 
         menubar = self.menuBar()
 
-        exitAction = QAction(QIcon('exit.png'), '&Exit', self)
-        exitAction.setShortcut('Ctrl+Q')
-        exitAction.triggered.connect(qApp.quit)
-        openAction = QAction(QIcon('open.png'), '&Open', self)
-        openAction.setShortcut('Ctrl+O')
-        openAction.triggered.connect(self.open_db)
-        cumAction = QAction(QIcon('db.png'), '&Cumul', self)
-        cumAction.triggered.connect(self.show_cumul)
-        showRowAction = QAction(QIcon('db.png'), '&Row', self)
+        exitAction = self.add_action('&Quitter', qApp.quit, 'Ctrl+Q')
+        openAction = self.add_action('&Ouvrir', self.open_db, 'Ctrl+O')
         showRowAction.triggered.connect(self.show_row)
-        delRowAction = QAction(QIcon('db.png'), '&Supprimer la ligne', self)
-        delRowAction.triggered.connect(self.remove_current_row)
-        addFormAction = QAction(QIcon('form.png'), '&Ligne de comptabilité', self)
-        addFormAction.triggered.connect(self.addDatas)
-        addFournisseurAction = QAction(QIcon('fournisseur.png'), '&Fournisseur', self)
-        addFournisseurAction.triggered.connect(self.addFournisseur)
-        addCodeComptaAction = QAction(QIcon('codecompta.png'), '&Code compta', self)
-        addCodeComptaAction.triggered.connect(self.addCodeCompta)
+        delRowAction = self.add_action('&Supprimer la ligne', self.remove_current_row)
+        addFormAction = self.add_action('&Ligne de comptabilité', self.addDatas)
+        addFournisseurAction = self.add_action('&Fournisseur', self.addFournisseur)
+        addCodeComptaAction = self.add_action('&Code compta', self.addCodeCompta)
 
         fileMenu = menubar.addMenu('&Fichier')
         fileMenu.addAction(openAction)
@@ -47,9 +36,6 @@ class MainWindow(QMainWindow):
         edit_menu = menubar.addMenu('&Édition')
         edit_menu.addAction(delRowAction)
         view_menu = menubar.addMenu('&Vue')
-        view_menu.addAction(cumAction)
-        view_menu.addAction(showRowAction)
-        #view_menu.addAction(viewFormAction)
         addMenu = menubar.addMenu('&Ajouter')
         addMenu.addAction(addFormAction)
         addMenu.addAction(addFournisseurAction)
@@ -67,6 +53,13 @@ class MainWindow(QMainWindow):
         self.mainView.setModel(self.model.qt_table_compta)
         self.mainView.setItemDelegate(QSqlRelationalDelegate())
         self.setCentralWidget(self.mainView)
+
+    def add_action(self, name, function_name, shortcut=None):
+        action = QAction(name, self)
+        if shortcut:
+            action.setShortcut(shortcut)
+        action.triggered.connect(function_name)
+        return action
 
     def remove_current_row(self):
         row = self.mainView.currentIndex().row()
@@ -163,7 +156,6 @@ class MainWindow(QMainWindow):
                 self.form.refresh_codeCompta()
                 self.model.update_table_model()
 
-                    
 if __name__ == '__main__':
     import sys, os
     
