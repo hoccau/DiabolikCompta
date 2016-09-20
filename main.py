@@ -24,17 +24,18 @@ class MainWindow(QMainWindow):
 
         exitAction = self.add_action('&Quitter', qApp.quit, 'Ctrl+Q')
         openAction = self.add_action('&Ouvrir', self.open_db, 'Ctrl+O')
-        showRowAction.triggered.connect(self.show_row)
         delRowAction = self.add_action('&Supprimer la ligne', self.remove_current_row)
         addFormAction = self.add_action('&Ligne de comptabilité', self.addDatas)
         addFournisseurAction = self.add_action('&Fournisseur', self.addFournisseur)
         addCodeComptaAction = self.add_action('&Code compta', self.addCodeCompta)
+        setInfosAction = self.add_action('Editer les infos du centre', self.set_infos)
 
         fileMenu = menubar.addMenu('&Fichier')
         fileMenu.addAction(openAction)
         fileMenu.addAction(exitAction)
         edit_menu = menubar.addMenu('&Édition')
         edit_menu.addAction(delRowAction)
+        edit_menu.addAction(setInfosAction)
         view_menu = menubar.addMenu('&Vue')
         addMenu = menubar.addMenu('&Ajouter')
         addMenu.addAction(addFormAction)
@@ -103,6 +104,8 @@ class MainWindow(QMainWindow):
             if reponse == QMessageBox.Yes:
                 db_name = self.input_db_name()
                 self.model.create_db(db_name)
+                self.set_infos()
+
             if reponse == QMessageBox.No:
                 return None
 
@@ -120,14 +123,8 @@ class MainWindow(QMainWindow):
                 name = name + '.db'
             return name
 
-    def switch_to_form_view(self):
-        self.form = Form(self) #because: http://stackoverflow.com/questions/17914960/pyqt-runtimeerror-wrapped-c-c-object-has-been-deleted
-        self.setCentralWidget(self.form)
-
-    def switch_to_db_view(self):
-        self.mainView = QTableView(self)
-        self.mainView.setModel(self.model.qt_table_compta)
-        self.setCentralWidget(self.mainView)
+    def set_infos(self):
+        InfosCentreDialog(self)
 
     def addDatas(self):
         self.form.show()

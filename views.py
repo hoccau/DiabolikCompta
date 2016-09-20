@@ -131,5 +131,37 @@ class CodeComptaDialog(QDialog):
         result = dialog.exec_()
         return (dialog.name.text(), dialog.code.value(), result == QDialog.Accepted)
 
+        #self.qt_table_compta = QSqlTableModel(self, self.db).setTable('compta')
 
-        self.qt_table_compta = QSqlTableModel(self, self.db).setTable('compta')
+class InfosCentreDialog(QDialog):
+    def __init__(self, parent=None):
+        super(CreateNewDbDialog, self).__init__(parent)
+
+        model = parent.model.qt_table_infos
+        mapper = QDataWidgetMapper(self)
+        mapper.setModel(model)
+
+        self.centre = QLineEdit()
+        self.directeur_nom = QLineEdit()
+        self.directeur_prenom = QLineEdit()
+
+        mapper.addMapping(self.centre, model.fieldIndex("centre"))
+        mapper.addMapping(self.directeur_nom, model.fieldIndex("directeur_nom"))
+        mapper.addMapping(self.directeur_prenom, model.fieldIndex("directeur_prenom"))
+        
+        layout = QFormLayout(self)
+        
+        layout.addRow("Nom du centre:", self.centre)
+        layout.addRow("Nom du directeur:", self.directeur_nom)
+        layout.addRow("Prénom du directeur:", self.directeur_prenom)
+        
+        buttons = QDialogButtonBox(
+            QDialogButtonBox.Ok | QDialogButtonBox.Cancel,
+            self)
+        buttons.accepted.connect(mapper.submit)
+        buttons.accepted.connect(self.accept)
+        buttons.rejected.connect(self.reject)
+        layout.addWidget(buttons)
+        
+        mapper.toFirst()
+        self.exec_()

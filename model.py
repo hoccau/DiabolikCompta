@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*- 
 
-from PyQt5.QtSql import QSqlQueryModel, QSqlDatabase, QSqlQuery, QSqlRelationalTableModel, QSqlRelation
+from PyQt5.QtSql import QSqlQueryModel, QSqlDatabase, QSqlQuery, QSqlRelationalTableModel, QSqlRelation, QSqlTableModel
 from PyQt5.QtCore import Qt
 
 class Model(QSqlQueryModel):
@@ -12,6 +12,14 @@ class Model(QSqlQueryModel):
 
     def create_db(self, db_name):
         self.connect_db(db_name)
+        self.query.exec_("CREATE TABLE infos(\
+        centre varchar(20),\
+        directeur_nom varchar(20),\
+        directeur_prenom varchar(20)\
+        )")
+        self.query.exec_("INSERT INTO infos(\
+        centre, directeur_nom, directeur_prenom) VALUES (\
+        NULL, NULL, NULL)")
         self.query.exec_("CREATE TABLE fournisseurs(\
         id integer PRIMARY KEY,\
         NOM varchar(20)\
@@ -50,6 +58,7 @@ class Model(QSqlQueryModel):
         self.query = QSqlQuery()
         self.qt_table_compta = QSqlRelationalTableModel(self, self.db)
         self.update_table_model()
+        self.qt_table_infos = InfosModel(self, self.db)
 
     def update_table_model(self):
         self.qt_table_compta.setTable('compta')
@@ -173,4 +182,28 @@ class Model(QSqlQueryModel):
                 "UPDATE compta SET cumul = '"+str(cumul)+"' WHERE id = "+str(row_id)
                 )
 
+    def set_infos(self, directeur_nom=None, directeur_prenom=None, centre=None):
+        q = "UPDATE infos SET \
+        directeur_nom = '"+directeur_nom+"',\
+        directeur_prenom = '" +directeur_prenom+"',\
+        centre = '"+centre+"'"
+        req = self.query.exec_(q)
+        print "set-infos", q, req
 
+    def get_infos(self):
+        q= "SELECT directeur_nom, directeur_prenom, centre FROM infos"
+        req = self.query.exec_(q)
+        if self.query.isValid():
+            while self.query.next():
+                print self.query.value(0), self.query.value(1), self.query.value(2)
+                return self.query.value(0), self.query.value(1), self.value(2)
+        else:
+            return " ", " ", " "
+        
+
+class InfosModel(QSqlTableModel):
+    def __init__(self, parent, db):
+        super(InfosModel, self).__init__(parent, db)
+
+        self.setTable("infos")
+        self.select()

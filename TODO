@@ -1,7 +1,5 @@
 TODO
 
- * Pouvoir supprimer une ligne
- * Table contenant les infos du centre de vacances
  * Filtres, rapports...
  * Empecher l'edition de l'id de la table compta
  * inverser l'ordre de la table (dernier enregistrement en premier)?
@@ -15,3 +13,5 @@ DONE
  * Rafraichir la table quand on entre des données via formulaire
  * champs "Cumul du prix"
  * champs "Date"
+ * Pouvoir supprimer une ligne
+ * Table contenant les infos du centre de vacances
