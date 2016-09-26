@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -16,7 +16,6 @@ from PyQt5.QtSql import QSqlRelationalDelegate
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
-        
         
         self.initUI()
 
@@ -73,7 +72,7 @@ class MainWindow(QMainWindow):
         row = self.mainView.currentIndex().row()
         model = self.mainView.currentIndex().model()
         row_id = model.index(row, 0).data()
-        print "row to remove:", row
+        print("row to remove:", row)
         self.model.qt_table_compta.removeRow(row)
         self.model.update_cumul(row_id + 1)
         self.model.update_table_model()
@@ -81,8 +80,8 @@ class MainWindow(QMainWindow):
     def show_row(self):
         row = self.mainView.currentIndex().row()
         model = self.mainView.currentIndex().model()
-        print "id:", model.index(row,0).data(), "m2:", m2
-        print "row", row
+        print("id:", model.index(row,0).data(), "m2:", m2)
+        print("row", row)
         
     def show_cumul(self):
         self.model.update_cumul(3)
@@ -94,7 +93,7 @@ class MainWindow(QMainWindow):
 
     def retrieve_db(self):
         files = os.listdir('./')
-        files = filter(lambda x: x.split('.')[-1] == 'db', files)
+        files = [x for x in files if x.split('.')[-1] == 'db']
 
         if len(files) == 1:
             QMessageBox.information(self, "Base trouvée","Base de donnée : "+files[0])
@@ -151,7 +150,7 @@ class MainWindow(QMainWindow):
 
     def addCodeCompta(self):
         name, code, ok = CodeComptaDialog.getCode()
-        print name, code, ok
+        print(name, code, ok)
         if ok and name != "":
             response = self.model.add_code_compta(code, name)
             if response == "UNIQUE constraint failed: codecompta.CODE":
@@ -166,5 +165,3 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     main_window = MainWindow()
     sys.exit(app.exec_())
-
-

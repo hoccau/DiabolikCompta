@@ -1,10 +1,10 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*- 
 
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QRegExp
 from PyQt5.QtGui import QRegExpValidator
-#from PyQt5.QtCharts import *
+from PyQt5.QtChart import *
 
 class Form(QDialog):
     def __init__(self, parent=None):
@@ -35,7 +35,7 @@ class Form(QDialog):
         self.refresh_codeCompta()
         nameTypePayement = QLabel("Type de payement")
         self.typePayement = QComboBox()
-        self.typePayement.addItems(self.model.get_typesPayement().keys())
+        self.typePayement.addItems(list(self.model.get_typesPayement().keys()))
         self.date = QCalendarWidget()
 
         self.submitButton = QPushButton("Enregistrer")
@@ -91,17 +91,17 @@ class Form(QDialog):
 
     def refresh_fournisseurs(self):
         self.fournisseur.clear()
-        for fournisseur, rowid in self.model.get_fournisseurs().items():
+        for fournisseur, rowid in list(self.model.get_fournisseurs().items()):
             self.fournisseur.addItem(fournisseur)
 
     def refresh_codeCompta(self):
         self.codeCompta.clear()
-        for codeCompta, code in self.model.get_codesCompta().items():
+        for codeCompta, code in list(self.model.get_codesCompta().items()):
             self.codeCompta.addItem(codeCompta)
     
     def refresh_typePayement(self):
         self.typePayement.clear()
-        for typePayement, rowid in self.model.get_typesPayement().items():
+        for typePayement, rowid in list(self.model.get_typesPayement().items()):
             self.codeCompta.addItem(typePayement)
 
 class CodeComptaDialog(QDialog):
@@ -171,28 +171,39 @@ class InfosCentreDialog(QDialog):
 class RapportDialog(QDialog):
     def __init__(self, parent):
         super(RapportDialog, self).__init__(parent)
+        self.parent = parent
+        self.setMinimumSize(500, 500)
         
-        by_payement = QGroupBox("Totaux par payement", parent=self)
+        grid = QGridLayout(self)
         totals = parent.model.get_totals_by_payement()
-        by_payement_layout = QFormLayout(self)
-
-        for k, v in totals.items():
-            by_payement_layout.addRow(k+":", QLabel(str(v)+"€"))
-        by_payement_layout.addRow("Total:", QLabel(str(parent.model.get_total())+"€"))
-        by_payement.setLayout(by_payement_layout)
-
-        totals={
-            "bidule":1,
-            "truc":2,
-            "machin":3
-            }
-        #series = QPieSeries()
-        #for k, v in totals.items():
-        #    series.append(k,v)
-        #chart = QChart()
-        #chart.addSeries(series)
-        #chartView = QChartView(chart)
+        text1 = self.create_text(totals, "Par type de payement")
+        graph1 = self.create_chart(totals)
+        grid.addWidget(text1, 0, 0)
+        grid.addWidget(graph1, 0, 1)
+        by_code = parent.model.get_totals_by_codecompta()
+        text2 = self.create_text(by_code, "Par catégorie comptable")
+        graph2 = self.create_chart(by_code)
+        grid.addWidget(text2, 1, 0)
+        grid.addWidget(graph2, 1, 1)
 
         self.exec_()
 
+    def create_chart(self, dic):
+        series = QPieSeries()
+        for k, v in dic.items():
+            series.append(k,v)
+        chart = QChart()
+        #chart.setTitle("Graphique")
+        chart.addSeries(series)
+        chartView = QChartView(chart)
+        return chartView
+        
+    def create_text(self, dic, titre):
+        layout = QFormLayout()
+        box1 = QGroupBox(titre, parent=self)
+        for k, v in list(dic.items()):
+            layout.addRow(k+":", QLabel(str(v)+"€"))
+        layout.addRow("Total:", QLabel(str(self.parent.model.get_total())+"€"))
+        box1.setLayout(layout)
+        return box1
 

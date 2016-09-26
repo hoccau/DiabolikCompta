@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*- 
 
 from PyQt5.QtSql import QSqlQueryModel, QSqlDatabase, QSqlQuery, QSqlRelationalTableModel, QSqlRelation, QSqlTableModel
@@ -48,7 +48,7 @@ class Model(QSqlQueryModel):
         FOREIGN KEY (TypePayement_id) REFERENCES type_payement(id)\
         )")
         if req == False:
-            print self.query.lastError().text()
+            print(self.query.lastError().text())
         self.query.exec_("CREATE UNIQUE INDEX idx_CODE ON codecompta (CODE)")
         self.query.exec_("CREATE UNIQUE INDEX idx_NOM ON fournisseurs (NOM)")
 
@@ -98,7 +98,7 @@ class Model(QSqlQueryModel):
     def add_fournisseur(self, name):
         req = self.query.exec_("insert into fournisseurs (nom) values('"+name+"')")
         if req == False:
-            print self.query.lastError().databaseText()
+            print(self.query.lastError().databaseText())
             return self.query.lastError().databaseText()
         else:
             return req
@@ -107,9 +107,9 @@ class Model(QSqlQueryModel):
         query = "INSERT INTO codecompta (CODE, NOM)"
         query += " VALUES "
         query += "("+str(code)+",'"+name+"')"
-        print "query:", query
+        print("query:", query)
         req = self.query.exec_(query)
-        print "req:", req
+        print("req:", req)
         if req == False:
             return self.query.lastError().databaseText()
         else:
@@ -128,11 +128,11 @@ class Model(QSqlQueryModel):
         +str(datas["codeCompta_id"])+","\
         +str(datas["typePayement_id"])\
         +")"
-        print query
+        print(query)
         q = self.query.exec_(query)
-        print "query success:", q
+        print("query success:", q)
         if q == False:
-            print self.query.lastError().databaseText()
+            print(self.query.lastError().databaseText())
 
     def get_last_cumul(self):
         query = "SELECT cumul FROM compta ORDER BY id DESC LIMIT 1"
@@ -152,10 +152,10 @@ class Model(QSqlQueryModel):
     def compute_cumul_eff(self, line_id):
         query = "SELECT cumul FROM compta WHERE ID < "\
         +str(line_id)+" ORDER BY id DESC LIMIT 1"
-        print "query:", query
+        print("query:", query)
         req = self.query.exec_(query)
         if req == False:
-            print self.query.lastError().databaseText()
+            print(self.query.lastError().databaseText())
         while self.query.next():
             last_cumul = self.query.value(0)
         return last_cumul + price
@@ -177,7 +177,7 @@ class Model(QSqlQueryModel):
             while self.query.next():
                 last_cumul = self.query.value(0)
             cumul = price + last_cumul
-            print "cumul:", last_cumul, " prix:", price
+            print("cumul:", last_cumul, " prix:", price)
             self.query.exec_(
                 "UPDATE compta SET cumul = '"+str(cumul)+"' WHERE id = "+str(row_id)
                 )
@@ -185,10 +185,20 @@ class Model(QSqlQueryModel):
     def get_totals_by_payement(self):
         query = "SELECT type_payement.NOM, sum(prix) FROM compta INNER JOIN type_payement ON type_payement.id = typePayement_id GROUP BY typePayement_id"
         self.query.exec_(query)
-        res = {}
-        while self.query.next():
-            res[self.query.value(0)] = self.query.value(1)
+        res = self.query2dic()
         return res
+
+    def get_totals_by_codecompta(self):
+        query = "SELECT codecompta.NOM, sum(prix) FROM compta INNER JOIN codecompta ON codecompta.code = codecompta GROUP BY codecompta"
+        req = self.query.exec_(query)
+        res = self.query2dic()
+        return res
+        
+    def query2dic(self):
+        dic = {}
+        while self.query.next():
+            dic[self.query.value(0)] = self.query.value(1)
+        return dic
 
     def get_total(self):
         self.query.exec_("SELECT sum(prix) FROM compta")
@@ -201,14 +211,14 @@ class Model(QSqlQueryModel):
         directeur_prenom = '" +directeur_prenom+"',\
         centre = '"+centre+"'"
         req = self.query.exec_(q)
-        print "set-infos", q, req
+        print("set-infos", q, req)
 
     def get_infos(self):
         q= "SELECT directeur_nom, directeur_prenom, centre FROM infos"
         req = self.query.exec_(q)
         if self.query.isValid():
             while self.query.next():
-                print self.query.value(0), self.query.value(1), self.query.value(2)
+                print(self.query.value(0), self.query.value(1), self.query.value(2))
                 return self.query.value(0), self.query.value(1), self.value(2)
         else:
             return " ", " ", " "

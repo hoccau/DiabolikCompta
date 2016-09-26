@@ -1,6 +1,5 @@
 TODO
 
- * Filtres, rapports...
  * Empecher l'edition de l'id de la table compta
  * inverser l'ordre de la table (dernier enregistrement en premier)?
  * date en format francophone
@@ -15,3 +14,4 @@ DONE
  * champs "Date"
  * Pouvoir supprimer une ligne
  * Table contenant les infos du centre de vacances
+ * Filtres, rapports...
