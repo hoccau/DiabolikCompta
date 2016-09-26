@@ -16,6 +16,8 @@ from PyQt5.QtSql import QSqlRelationalDelegate
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
+        
+        
         self.initUI()
 
     def initUI(self):
@@ -29,6 +31,7 @@ class MainWindow(QMainWindow):
         addFournisseurAction = self.add_action('&Fournisseur', self.addFournisseur)
         addCodeComptaAction = self.add_action('&Code compta', self.addCodeCompta)
         setInfosAction = self.add_action('Editer les infos du centre', self.set_infos)
+        ViewRapportAction = self.add_action('Rapport', self.viewRapport)
 
         fileMenu = menubar.addMenu('&Fichier')
         fileMenu.addAction(openAction)
@@ -37,6 +40,7 @@ class MainWindow(QMainWindow):
         edit_menu.addAction(delRowAction)
         edit_menu.addAction(setInfosAction)
         view_menu = menubar.addMenu('&Vue')
+        view_menu.addAction(ViewRapportAction)
         addMenu = menubar.addMenu('&Ajouter')
         addMenu.addAction(addFormAction)
         addMenu.addAction(addFournisseurAction)
@@ -45,7 +49,7 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage('Ready')
         self.setMinimumSize(850,300)
         self.show()
-
+        
         self.model = Model(self)
         self.retrieve_db()
         self.form = Form(self)
@@ -61,6 +65,9 @@ class MainWindow(QMainWindow):
             action.setShortcut(shortcut)
         action.triggered.connect(function_name)
         return action
+
+    def viewRapport(self):
+        RapportDialog(self)
 
     def remove_current_row(self):
         row = self.mainView.currentIndex().row()

@@ -182,6 +182,19 @@ class Model(QSqlQueryModel):
                 "UPDATE compta SET cumul = '"+str(cumul)+"' WHERE id = "+str(row_id)
                 )
 
+    def get_totals_by_payement(self):
+        query = "SELECT type_payement.NOM, sum(prix) FROM compta INNER JOIN type_payement ON type_payement.id = typePayement_id GROUP BY typePayement_id"
+        self.query.exec_(query)
+        res = {}
+        while self.query.next():
+            res[self.query.value(0)] = self.query.value(1)
+        return res
+
+    def get_total(self):
+        self.query.exec_("SELECT sum(prix) FROM compta")
+        while self.query.next():
+            return self.query.value(0)
+
     def set_infos(self, directeur_nom=None, directeur_prenom=None, centre=None):
         q = "UPDATE infos SET \
         directeur_nom = '"+directeur_nom+"',\

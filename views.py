@@ -4,6 +4,7 @@
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QRegExp
 from PyQt5.QtGui import QRegExpValidator
+#from PyQt5.QtCharts import *
 
 class Form(QDialog):
     def __init__(self, parent=None):
@@ -110,6 +111,7 @@ class CodeComptaDialog(QDialog):
         layout = QGridLayout(self)
         label_code = QLabel("Code:")
         self.code = QSpinBox()
+        self.code.setMaximum(999999)
         label_name = QLabel("Nom:")
         self.name = QLineEdit()
 
@@ -135,7 +137,7 @@ class CodeComptaDialog(QDialog):
 
 class InfosCentreDialog(QDialog):
     def __init__(self, parent=None):
-        super(CreateNewDbDialog, self).__init__(parent)
+        super(InfosCentreDialog, self).__init__(parent)
 
         model = parent.model.qt_table_infos
         mapper = QDataWidgetMapper(self)
@@ -165,3 +167,32 @@ class InfosCentreDialog(QDialog):
         
         mapper.toFirst()
         self.exec_()
+
+class RapportDialog(QDialog):
+    def __init__(self, parent):
+        super(RapportDialog, self).__init__(parent)
+        
+        by_payement = QGroupBox("Totaux par payement", parent=self)
+        totals = parent.model.get_totals_by_payement()
+        by_payement_layout = QFormLayout(self)
+
+        for k, v in totals.items():
+            by_payement_layout.addRow(k+":", QLabel(str(v)+"€"))
+        by_payement_layout.addRow("Total:", QLabel(str(parent.model.get_total())+"€"))
+        by_payement.setLayout(by_payement_layout)
+
+        totals={
+            "bidule":1,
+            "truc":2,
+            "machin":3
+            }
+        #series = QPieSeries()
+        #for k, v in totals.items():
+        #    series.append(k,v)
+        #chart = QChart()
+        #chart.addSeries(series)
+        #chartView = QChartView(chart)
+
+        self.exec_()
+
+
