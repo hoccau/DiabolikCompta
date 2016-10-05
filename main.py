@@ -21,12 +21,13 @@ class MainWindow(QMainWindow):
 
     def initUI(self):
 
+        self.setWindowTitle("Diabolik Compta")
         menubar = self.menuBar()
 
         exitAction = self.add_action('&Quitter', qApp.quit, 'Ctrl+Q')
         openAction = self.add_action('&Ouvrir', self.open_db, 'Ctrl+O')
         delRowAction = self.add_action('&Supprimer la ligne', self.remove_current_row)
-        addFormAction = self.add_action('&Ligne de comptabilité', self.addDatas)
+        addFormAction = self.add_action('&Pièce comptable', self.addDatas)
         addFournisseurAction = self.add_action('&Fournisseur', self.addFournisseur)
         addCodeComptaAction = self.add_action('&Code compta', self.addCodeCompta)
         setInfosAction = self.add_action('Editer les infos du centre', self.set_infos)
@@ -136,7 +137,7 @@ class MainWindow(QMainWindow):
         self.form.show()
 
     def addFournisseur(self):
-        name, ok = QInputDialog.getText(self, 'Input Dialog',
+        name, ok = QInputDialog.getText(self, 'Fournisseur',
             'Nom du fournisseur:')
         if ok and name != "":
             res = self.model.add_fournisseur(name)

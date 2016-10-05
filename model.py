@@ -28,6 +28,24 @@ class Model(QSqlQueryModel):
         CODE int PRIMARY KEY,\
         NOM varchar(20)\
         )")
+        codes_compta = [
+            "60620, 'Produits entretien'",
+            "60630, 'Petit équipement petit matériel'",
+            "60640, 'Fournitures administratives'",
+            "60650, 'Produits pharmaceutiques'",
+            "6068, 'Fournitures pour activité'",
+            "60681, 'Alimentation boissons'",
+            "6112, 'Sorties extérieures & activités'",
+            "6152, 'Entretien/réparation immobilier'",
+            "6155, 'Entretien/réparation mobiler'",
+            "6181, 'Documentation générale'",
+            "624, 'Transport du personnel'",
+            "625, 'Transport des usagers'",
+            "626, 'Postes & Télécom'",
+            "606510, 'Frais médicaux remboursables'"
+            ]
+        for code in codes_compta:
+            self.query.exec_("INSERT INTO codecompta (code, nom) VALUES ("+code+")")
         self.query.exec_("CREATE TABLE type_payement (\
         id integer PRIMARY KEY,\
         NOM varchar(20)\

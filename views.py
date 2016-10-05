@@ -10,6 +10,7 @@ class Form(QDialog):
     def __init__(self, parent=None):
         super(Form, self).__init__(parent)
 
+        self.setWindowTitle("Pièce comptable")
         self.parent = parent
         self.model = parent.model
         self.fournisseurs = []
@@ -64,6 +65,10 @@ class Form(QDialog):
         self.grid.addWidget(QLabel(label_name), self.field_index, 0)
         self.grid.addWidget(widget, self.field_index, 1)
 
+    def clear_all(self):
+        self.product.clear()
+        self.price.clear()
+
     def verif_datas(self):
         if self.fournisseur.currentText() == "":
             QMessageBox.warning(self, "Erreur", "Il faut entrer un nom de fournisseur")
@@ -88,6 +93,7 @@ class Form(QDialog):
             record["typePayement_id"] = p_id
             self.model.set_line(record)
             self.model.update_table_model()
+            self.clear_all()
 
     def refresh_fournisseurs(self):
         self.fournisseur.clear()
@@ -108,6 +114,7 @@ class CodeComptaDialog(QDialog):
     def __init__(self, parent=None):
         super(CodeComptaDialog, self).__init__(parent)
 
+        self.setWindowTitle("Ajouter un code de comptabilité")
         layout = QGridLayout(self)
         label_code = QLabel("Code:")
         self.code = QSpinBox()
@@ -139,6 +146,7 @@ class InfosCentreDialog(QDialog):
     def __init__(self, parent=None):
         super(InfosCentreDialog, self).__init__(parent)
 
+        self.setWindowTitle("Centre")
         model = parent.model.qt_table_infos
         mapper = QDataWidgetMapper(self)
         mapper.setModel(model)
@@ -171,8 +179,10 @@ class InfosCentreDialog(QDialog):
 class RapportDialog(QDialog):
     def __init__(self, parent):
         super(RapportDialog, self).__init__(parent)
+
+        self.setWindowTitle("Rapport")
         self.parent = parent
-        self.setMinimumSize(500, 500)
+        self.setMinimumSize(700, 500)
         
         grid = QGridLayout(self)
         totals = parent.model.get_totals_by_payement()
