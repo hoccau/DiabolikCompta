@@ -59,7 +59,6 @@ class Model(QSqlQueryModel):
         Date varchar(10),\
         Designation varchar(20),\
         Prix real,\
-        Cumul real,\
         CodeCompta int NOT NULL,\
         TypePayement_id int NOT NULL,\
         FOREIGN KEY (Fournisseur_id) REFERENCES fournisseurs(id),\
@@ -84,13 +83,13 @@ class Model(QSqlQueryModel):
         c_rel = QSqlRelation("codecompta","code","NOM")
         p_rel = QSqlRelation("type_payement","id","NOM")
         self.qt_table_compta.setRelation(1, f_rel)
-        self.qt_table_compta.setRelation(6, c_rel)
-        self.qt_table_compta.setRelation(7, p_rel)
+        self.qt_table_compta.setRelation(5, c_rel)
+        self.qt_table_compta.setRelation(6, p_rel)
         self.qt_table_compta.select()
         self.qt_table_compta.setHeaderData(0, Qt.Horizontal, "Identification")
         self.qt_table_compta.setHeaderData(1, Qt.Horizontal, "Fournisseur")
-        self.qt_table_compta.setHeaderData(6, Qt.Horizontal, "Code")
-        self.qt_table_compta.setHeaderData(7, Qt.Horizontal, "Moyen de payement")
+        self.qt_table_compta.setHeaderData(5, Qt.Horizontal, "Code")
+        self.qt_table_compta.setHeaderData(6, Qt.Horizontal, "Moyen de payement")
 
     def get_fournisseurs(self):
         fournisseurs = {}
@@ -134,15 +133,13 @@ class Model(QSqlQueryModel):
             return True
 
     def set_line(self, datas):
-        last_cumul = self.get_last_cumul()
-        query = "INSERT INTO compta (Fournisseur_id,  Date, Designation, Prix, Cumul, CodeCompta, TypePayement_id)"
+        query = "INSERT INTO compta (Fournisseur_id,  Date, Designation, Prix, CodeCompta, TypePayement_id)"
         query += " VALUES "
         query += "("\
         +str(datas["fournisseur_id"])+",'"\
         +str(datas["date"])+"','"\
         +datas["product"]+"',"\
         +datas["price"]+","\
-        +str(last_cumul + float(datas["price"]))+","\
         +str(datas["codeCompta_id"])+","\
         +str(datas["typePayement_id"])\
         +")"
@@ -152,53 +149,11 @@ class Model(QSqlQueryModel):
         if q == False:
             print(self.query.lastError().databaseText())
 
-    def get_last_cumul(self):
-        query = "SELECT cumul FROM compta ORDER BY id DESC LIMIT 1"
-        req = self.query.exec_(query)
-        last_cumul = 0
-        while self.query.next():
-            last_cumul = self.query.value(0)
-        return last_cumul
-
-    def compute_cumul_sum(self):
-        res = self.query.exec_("SELECT Prix FROM compta")
-        cumul = 0
-        while self.query.next():
-            cumul += self.query.value(0)
-        return cumul
-        
-    def compute_cumul_eff(self, line_id):
-        query = "SELECT cumul FROM compta WHERE ID < "\
-        +str(line_id)+" ORDER BY id DESC LIMIT 1"
-        print("query:", query)
-        req = self.query.exec_(query)
-        if req == False:
-            print(self.query.lastError().databaseText())
-        while self.query.next():
-            last_cumul = self.query.value(0)
-        return last_cumul + price
-        
     def get_last_id(self):
         query = "SELECT id FROM compta ORDER BY id DESC LIMIT 1"
         self.query.exec_(query)
         while self.query.next():
             return self.query.value(0)
-
-    def update_cumul(self, begin_row_id):
-        last_id = self.get_last_id()
-        for row_id in range(begin_row_id, int(last_id) +1):
-            self.query.exec_("SELECT prix FROM compta WHERE id = "+str(row_id))
-            price = 0
-            while self.query.next():
-                price = self.query.value(0)
-            self.query.exec_("SELECT cumul FROM compta WHERE id < "+str(row_id)+" ORDER BY id DESC LIMIT 1")
-            while self.query.next():
-                last_cumul = self.query.value(0)
-            cumul = price + last_cumul
-            print("cumul:", last_cumul, " prix:", price)
-            self.query.exec_(
-                "UPDATE compta SET cumul = '"+str(cumul)+"' WHERE id = "+str(row_id)
-                )
 
     def get_totals_by_payement(self):
         query = "SELECT type_payement.NOM, sum(prix) FROM compta INNER JOIN type_payement ON type_payement.id = typePayement_id GROUP BY typePayement_id"
