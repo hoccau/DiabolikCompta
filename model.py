@@ -53,12 +53,18 @@ class Model(QSqlQueryModel):
         self.query.exec_("INSERT INTO type_payement (NOM) VALUES ('Chèque')")
         self.query.exec_("INSERT INTO type_payement (NOM) VALUES ('Espèces')")
         self.query.exec_("INSERT INTO type_payement (NOM) VALUES ('Carte Banquaire')")
-        req = self.query.exec_("CREATE TABLE compta(\
+        self.query.exec_("CREATE TABLE code_analytique (\
+        code INTEGER PRIMARY KEY,\
+        nom VARCHAR(20))")
+        self.query.exec_("INSERT INTO code_analytique (code, nom) VALUES\
+        (200, 'centre')")
+        self.query.exec_("INSERT INTO code_analytique (code, nom) VALUES\
+        (600, 'Véhicule')")
+        req = self.query.exec_("CREATE TABLE pieces_comptables(\
         id integer PRIMARY KEY,\
         Fournisseur_id integer NOT NULL,\
         Date varchar(10),\
-        Designation varchar(20),\
-        Prix real,\
+        total real,\
         CodeCompta int NOT NULL,\
         TypePayement_id int NOT NULL,\
         FOREIGN KEY (Fournisseur_id) REFERENCES fournisseurs(id),\
@@ -66,6 +72,12 @@ class Model(QSqlQueryModel):
         )")
         if req == False:
             print(self.query.lastError().text())
+        self.query.exec_("CREATE TABLE subdivision(\
+        id INTEGER PRIMARY KEY,\
+        piece_comptable_id INTEGER,\
+        code_compta_id INTEGER,\
+        prix REAL\
+        )")
         self.query.exec_("CREATE UNIQUE INDEX idx_CODE ON codecompta (CODE)")
         self.query.exec_("CREATE UNIQUE INDEX idx_NOM ON fournisseurs (NOM)")
 
@@ -78,7 +90,7 @@ class Model(QSqlQueryModel):
         self.qt_table_infos = InfosModel(self, self.db)
 
     def update_table_model(self):
-        self.qt_table_compta.setTable('compta')
+        self.qt_table_compta.setTable('pieces_comptables')
         f_rel = QSqlRelation("fournisseurs","id","NOM")
         c_rel = QSqlRelation("codecompta","code","NOM")
         p_rel = QSqlRelation("type_payement","id","NOM")
@@ -104,6 +116,10 @@ class Model(QSqlQueryModel):
         while self.query.next():
             codes_compta[self.query.value(0)] = self.query.value(1)
         return codes_compta
+
+    def get_codes_analytiques(self):
+        self.query.exec_("SELECT nom, code FROM code_analytique")
+        return self.query2dic()
 
     def get_typesPayement(self):
         types_payement = {}
@@ -132,37 +148,35 @@ class Model(QSqlQueryModel):
         else:
             return True
 
-    def set_line(self, datas):
-        query = "INSERT INTO compta (Fournisseur_id,  Date, Designation, Prix, CodeCompta, TypePayement_id)"
+    def add_piece_comptable(self, datas):
+        query = "INSERT INTO pieces_comptables (Fournisseur_id,  Date,\
+        Total, TypePayement_id)"
         query += " VALUES "
         query += "("\
         +str(datas["fournisseur_id"])+",'"\
         +str(datas["date"])+"','"\
-        +datas["product"]+"',"\
-        +datas["price"]+","\
-        +str(datas["codeCompta_id"])+","\
+        +datas["total"]+","\
         +str(datas["typePayement_id"])\
         +")"
-        print(query)
-        q = self.query.exec_(query)
-        print("query success:", q)
-        if q == False:
-            print(self.query.lastError().databaseText())
+        q = self.exec_(query)
 
     def get_last_id(self):
-        query = "SELECT id FROM compta ORDER BY id DESC LIMIT 1"
+        query = "SELECT id FROM pieces_comptables ORDER BY id DESC LIMIT 1"
         self.query.exec_(query)
         while self.query.next():
             return self.query.value(0)
 
     def get_totals_by_payement(self):
-        query = "SELECT type_payement.NOM, sum(prix) FROM compta INNER JOIN type_payement ON type_payement.id = typePayement_id GROUP BY typePayement_id"
+        query = "SELECT type_payement.NOM, sum(total) FROM pieces_comptables\
+        INNER JOIN type_payement ON type_payement.id = typePayement_id\
+        GROUP BY typePayement_id"
         self.query.exec_(query)
         res = self.query2dic()
         return res
 
     def get_totals_by_codecompta(self):
-        query = "SELECT codecompta.NOM, sum(prix) FROM compta INNER JOIN codecompta ON codecompta.code = codecompta GROUP BY codecompta"
+        query = "SELECT codecompta.NOM, sum(total) FROM pieces_comptables\
+        INNER JOIN codecompta ON codecompta.code = codecompta GROUP BY codecompta"
         req = self.query.exec_(query)
         res = self.query2dic()
         return res
@@ -174,7 +188,7 @@ class Model(QSqlQueryModel):
         return dic
 
     def get_total(self):
-        self.query.exec_("SELECT sum(prix) FROM compta")
+        self.query.exec_("SELECT sum(total) FROM pieces_comptables")
         while self.query.next():
             return self.query.value(0)
 
@@ -196,6 +210,11 @@ class Model(QSqlQueryModel):
         else:
             return " ", " ", " "
         
+    def exec_(self, request):
+        req = self.query.exec_(request)
+        print(req)
+        if req == False:
+            print(self.query.lastError().databaseText())
 
 class InfosModel(QSqlTableModel):
     def __init__(self, parent, db):

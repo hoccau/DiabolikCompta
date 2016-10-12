@@ -21,8 +21,6 @@ class Form(QDialog):
         self.fournisseur = QComboBox() #Choisir plutôt dans une liste de fournisseurs
         self.refresh_fournisseurs()
         self.fournisseur.setCompleter(comp)
-        nameProduct = QLabel("Désignation:")
-        self.product = QLineEdit()
 
         namePrice = QLabel("Prix (€)")
         self.price = QLineEdit()
@@ -31,9 +29,6 @@ class Form(QDialog):
         regexp = QRegExp('\d[\d\,\.]+')
         self.price.setValidator(QRegExpValidator(regexp))
 
-        nameCodeCompta = QLabel("Code Compta")
-        self.codeCompta = QComboBox()
-        self.refresh_codeCompta()
         nameTypePayement = QLabel("Type de payement")
         self.typePayement = QComboBox()
         self.typePayement.addItems(list(self.model.get_typesPayement().keys()))
@@ -47,13 +42,12 @@ class Form(QDialog):
         self.field_index = 0
         self.add_field("Fournisseur:", self.fournisseur)
         self.add_field("Date:", self.date)
-        self.add_field("Désignation", self.product)
         self.add_field("Prix (€):", self.price)
-        self.add_field("Code Compta", self.codeCompta)
         self.add_field("Type de payement", self.typePayement)
-        self.field_index += 1
-        self.grid.addWidget(self.submitButton, self.field_index, 0)
-        self.grid.addWidget(quitButton, self.field_index, 1)
+        self.subdivisions = []
+        self.add_subdivision()
+        self.grid.addWidget(self.submitButton, 100, 0)
+        self.grid.addWidget(quitButton, 100, 1)
 
         self.setLayout(self.grid)
 
@@ -61,9 +55,20 @@ class Form(QDialog):
         quitButton.clicked.connect(self.reject)
     
     def add_field(self, label_name, widget):
-        self.field_index += 1
         self.grid.addWidget(QLabel(label_name), self.field_index, 0)
         self.grid.addWidget(widget, self.field_index, 1)
+        self.field_index += 1
+
+    def add_layout(self, label_name, layout):
+        self.grid.addWidget(QLabel(label_name), self.field_index, 0)
+        self.grid.addLayout(layout, self.field_index, 1)
+        self.field_index += 1
+
+    def add_subdivision(self):
+        subdivision = SubdivisionView(self, self.field_index)
+        self.subdivisions.append(subdivision)
+        self.grid.addLayout(self.subdivisions[-1].layout, self.field_index, 1)
+        self.field_index += 1
 
     def clear_all(self):
         self.product.clear()
@@ -91,7 +96,7 @@ class Form(QDialog):
             record["price"] = self.price.text()
             record["codeCompta_id"] = c_id
             record["typePayement_id"] = p_id
-            self.model.set_line(record)
+            self.model.add_piece_comptable(record)
             self.model.update_table_model()
             self.clear_all()
 
@@ -99,16 +104,85 @@ class Form(QDialog):
         self.fournisseur.clear()
         for fournisseur, rowid in list(self.model.get_fournisseurs().items()):
             self.fournisseur.addItem(fournisseur)
-
-    def refresh_codeCompta(self):
-        self.codeCompta.clear()
-        for codeCompta, code in list(self.model.get_codesCompta().items()):
-            self.codeCompta.addItem(codeCompta)
     
     def refresh_typePayement(self):
         self.typePayement.clear()
         for typePayement, rowid in list(self.model.get_typesPayement().items()):
             self.codeCompta.addItem(typePayement)
+
+class SubdivisionView():
+    def __init__(self, parent=None, index=None):
+        self.parent = parent
+        self.index = index
+        self.model = parent.model
+        #self.grid = QGridLayout()
+        self.layout = QHBoxLayout()
+        self.product = QLineEdit()
+        self.product.setPlaceholderText("Désignation")
+        self.code_compta = QComboBox()
+        self.code_analytique = QComboBox()
+        self.refresh_code_compta()
+        self.refresh_code_analytique()
+        self.prix = QLineEdit()
+        regexp = QRegExp('\d[\d\,\.]+')
+        self.prix.setValidator(QRegExpValidator(regexp))
+        self.prix.setPlaceholderText("Prix")
+        self.submit_button = QPushButton("+")
+        self.remove_button = QPushButton("-")
+        self.submit_button.clicked.connect(self.submit_datas)
+        self.remove_button.clicked.connect(self.clear_layout)
+
+        self.layout.addWidget(self.product)
+        self.layout.addWidget(self.prix)
+        self.layout.addWidget(self.code_compta)
+        self.layout.addWidget(self.code_analytique)
+        self.layout.addWidget(self.submit_button)
+
+    def refresh_code_compta(self):
+        self.code_compta.clear()
+        for code_compta, code in list(self.model.get_codesCompta().items()):
+            self.code_compta.addItem(code_compta)
+    
+    def refresh_code_analytique(self):
+        self.code_analytique.clear()
+        for code_analytique, code in list(self.model.get_codes_analytiques().items()):
+            self.code_analytique.addItem(code_analytique)
+
+    def submit_datas(self):
+        #self.layout.removeWidget(self.submit_button)
+        self.submit_button.deleteLater()
+        #del(self.submit_button)
+        self.layout.insertWidget(4, self.remove_button)
+        self.parent.add_subdivision()
+
+    def delete_line(self):
+        print(self.parent.subdivisions)
+        self.layout.removeWidget(self.code_compta)
+        del(self.code_compta)
+        self.layout.removeWidget(self.product)
+        del(self.product)
+        self.layout.removeWidget(self.prix)
+        del(self.prix)
+        self.layout.removeWidget(self.submit_button)
+        del(self.submit_button)
+        self.layout.removeWidget(self.remove_button)
+        del(self.remove_button)
+        #label = self.parent.grid.itemAtPosition(self.index, 0)
+        #self.parent.grid.removeItem(label)
+        #self.parent.grid.removeItem(self.layout)
+        del(self.layout)
+        self.parent.subdivisions.remove(self)
+        print(self.parent.subdivisions)
+
+    def clear_layout(self):
+        while self.layout.count():
+            item = self.layout.takeAt(0)
+            widget = item.widget()
+            if widget is not None:
+                widget.deleteLater()
+            else:
+                self.clearLayout(item.layout())
+        self.parent.subdivisions.remove(self)
 
 class CodeComptaDialog(QDialog):
     def __init__(self, parent=None):
