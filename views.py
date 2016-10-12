@@ -42,10 +42,13 @@ class Form(QDialog):
         self.field_index = 0
         self.add_field("Fournisseur:", self.fournisseur)
         self.add_field("Date:", self.date)
-        self.add_field("Prix (€):", self.price)
-        self.add_field("Type de payement", self.typePayement)
+        self.hbox = QHBoxLayout()
+        self.hbox.addWidget(self.price)
+        self.hbox.addWidget(self.typePayement)
+        self.add_layout("Prix Total:",self.hbox)
         self.subdivisions = []
         self.add_subdivision()
+        self.grid.addWidget(QLabel("Subdivisions"), self.field_index -1, 0)
         self.grid.addWidget(self.submitButton, 100, 0)
         self.grid.addWidget(quitButton, 100, 1)
 
@@ -128,15 +131,19 @@ class SubdivisionView():
         self.prix.setValidator(QRegExpValidator(regexp))
         self.prix.setPlaceholderText("Prix")
         self.submit_button = QPushButton("+")
+        self.submit_button.setMaximumWidth(20)
+        #self.submit_button.resize(20, 10)
+        #print(self.submit_button.width())
         self.remove_button = QPushButton("-")
+        self.remove_button.setMaximumWidth(20)
         self.submit_button.clicked.connect(self.submit_datas)
         self.remove_button.clicked.connect(self.clear_layout)
 
-        self.layout.addWidget(self.product)
-        self.layout.addWidget(self.prix)
-        self.layout.addWidget(self.code_compta)
-        self.layout.addWidget(self.code_analytique)
-        self.layout.addWidget(self.submit_button)
+        self.layout.addWidget(self.product, stretch=8)
+        self.layout.addWidget(self.prix, stretch=3)
+        self.layout.addWidget(self.code_compta, stretch=10)
+        self.layout.addWidget(self.code_analytique, stretch=5)
+        self.layout.addWidget(self.submit_button, stretch=1)
 
     def refresh_code_compta(self):
         self.code_compta.clear()
