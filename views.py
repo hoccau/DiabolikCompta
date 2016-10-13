@@ -10,22 +10,21 @@ class Form(QDialog):
     def __init__(self, parent=None):
         super(Form, self).__init__(parent)
 
-        self.setWindowTitle("Pièce comptable")
         self.parent = parent
         self.model = parent.model
-        self.fournisseurs = []
 
-        comp = QCompleter(self.fournisseurs)
+        if self.model.get_last_id('pieces_comptables') == None:
+            self.id = 1
+        else:
+            self.id = int(self.model.get_last_id('pieces_comptables')) + 1
+        self.setWindowTitle("Pièce comptable #"+str(self.id))
         
         nameFournisseur = QLabel("Fournisseur:")
-        self.fournisseur = QComboBox() #Choisir plutôt dans une liste de fournisseurs
+        self.fournisseur = QComboBox()
         self.refresh_fournisseurs()
-        self.fournisseur.setCompleter(comp)
 
         namePrice = QLabel("Prix (€)")
         self.price = QLineEdit()
-        #self.price.decimals = 2
-        #self.price.setInputMask('00.00€')
         regexp = QRegExp('\d[\d\,\.]+')
         self.price.setValidator(QRegExpValidator(regexp))
 
@@ -73,6 +72,13 @@ class Form(QDialog):
         self.grid.addLayout(self.subdivisions[-1].layout, self.field_index, 1)
         self.field_index += 1
 
+    def get_total_subdivisions_price(self):
+        total = 0
+        for subdivision in self.subdivisions:
+            print('sub price:', subdivision.prix.text())
+            total += float(subdivision.prix.text())
+        return total
+
     def clear_all(self):
         self.product.clear()
         self.price.clear()
@@ -80,24 +86,19 @@ class Form(QDialog):
     def verif_datas(self):
         if self.fournisseur.currentText() == "":
             QMessageBox.warning(self, "Erreur", "Il faut entrer un nom de fournisseur")
-        elif self.product.text() == "":
-            QMessageBox.warning(self, "Erreur", "Il faut entrer un nom de désignation")
         elif self.price.text() == "":
-            QMessageBox.warning(self, "Erreur", "Il faut entrer un Prix")
-        elif self.codeCompta.currentText() == "":
-            QMessageBox.warning(self, "Erreur", "Il faut entrer un Code Compta")
-
+            QMessageBox.warning(self, "Erreur", "Il faut entrer un prix total")
+        elif self.get_total_subdivisions_price() != self.price.text():
+            QMessageBox.warning(self, "Erreur", "La somme des subdivisions est différente du prix total indiqué")
         else:
             record = {}
             #below : can be improved for faster ?
             f_id = self.model.get_fournisseurs()[self.fournisseur.currentText()]
             p_id = self.model.get_typesPayement()[self.typePayement.currentText()]
-            c_id = self.model.get_codesCompta()[self.codeCompta.currentText()]
             record["fournisseur_id"] = f_id
             record["date"] = self.date.selectedDate().toString('yyyy-MM-dd')
             record["product"] = self.product.text()
             record["price"] = self.price.text()
-            record["codeCompta_id"] = c_id
             record["typePayement_id"] = p_id
             self.model.add_piece_comptable(record)
             self.model.update_table_model()
@@ -132,8 +133,6 @@ class SubdivisionView():
         self.prix.setPlaceholderText("Prix")
         self.submit_button = QPushButton("+")
         self.submit_button.setMaximumWidth(20)
-        #self.submit_button.resize(20, 10)
-        #print(self.submit_button.width())
         self.remove_button = QPushButton("-")
         self.remove_button.setMaximumWidth(20)
         self.submit_button.clicked.connect(self.submit_datas)
@@ -156,30 +155,25 @@ class SubdivisionView():
             self.code_analytique.addItem(code_analytique)
 
     def submit_datas(self):
-        #self.layout.removeWidget(self.submit_button)
-        self.submit_button.deleteLater()
-        #del(self.submit_button)
-        self.layout.insertWidget(4, self.remove_button)
-        self.parent.add_subdivision()
-
-    def delete_line(self):
-        print(self.parent.subdivisions)
-        self.layout.removeWidget(self.code_compta)
-        del(self.code_compta)
-        self.layout.removeWidget(self.product)
-        del(self.product)
-        self.layout.removeWidget(self.prix)
-        del(self.prix)
-        self.layout.removeWidget(self.submit_button)
-        del(self.submit_button)
-        self.layout.removeWidget(self.remove_button)
-        del(self.remove_button)
-        #label = self.parent.grid.itemAtPosition(self.index, 0)
-        #self.parent.grid.removeItem(label)
-        #self.parent.grid.removeItem(self.layout)
-        del(self.layout)
-        self.parent.subdivisions.remove(self)
-        print(self.parent.subdivisions)
+        if self.product.text() == "":
+            QMessageBox.warning(self.parent, "Erreur", "Il faut entrer un nom de produit")
+        elif self.prix.text() == "":
+            QMessageBox.warning(self.parent, "Erreur", "Il faut entrer un prix")
+        else:
+            CO_id = self.model.get_codesCompta()[self.code_compta.currentText()]
+            CA_id = self.model.get_codes_analytiques()[self.code_analytique.currentText()]
+            datas = {}
+            datas["piece_comptable_id"] = self.parent.id
+            datas["code_compta_id"] = CO_id
+            datas["code_analytique_id"] = CA_id
+            print(self.prix.text())
+            datas["prix"] = self.prix.text()
+            if self.parent.model.add_subdivision(datas):
+                self.submit_button.deleteLater()
+                self.layout.insertWidget(4, self.remove_button)
+                self.parent.add_subdivision()
+            else:
+                QMessageBox.warning(self.parent, "Erreur", "Erreur de requête")
 
     def clear_layout(self):
         while self.layout.count():

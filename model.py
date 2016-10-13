@@ -72,11 +72,15 @@ class Model(QSqlQueryModel):
         )")
         if req == False:
             print(self.query.lastError().text())
-        self.query.exec_("CREATE TABLE subdivision(\
+        self.exec_("CREATE TABLE subdivisions(\
         id INTEGER PRIMARY KEY,\
         piece_comptable_id INTEGER,\
-        code_compta_id INTEGER,\
-        prix REAL\
+        code_compta_id INTEGER NOT NULL,\
+        code_analytique_id INTEGER,\
+        prix REAL,\
+        FOREIGN KEY (piece_comptable_id) REFERENCES pieces_comptables(id),\
+        FOREIGN KEY (code_compta_id) REFERENCES codecompta(id),\
+        FOREIGN KEY (code_analytique_id) REFERENCES code_analytique(id)\
         )")
         self.query.exec_("CREATE UNIQUE INDEX idx_CODE ON codecompta (CODE)")
         self.query.exec_("CREATE UNIQUE INDEX idx_NOM ON fournisseurs (NOM)")
@@ -160,6 +164,16 @@ class Model(QSqlQueryModel):
         +")"
         q = self.exec_(query)
 
+    def add_subdivision(self, datas):
+        query = "INSERT INTO subdivisions (\
+        piece_comptable_id, code_compta_id, code_analytique_id, prix) VALUES("\
+        +str(datas['piece_comptable_id'])+','\
+        +str(datas['code_compta_id'])+','\
+        +str(datas['code_analytique_id'])+','\
+        +str(datas['prix'])+')'
+        q = self.exec_(query)
+        return q
+
     def get_last_id(self):
         query = "SELECT id FROM pieces_comptables ORDER BY id DESC LIMIT 1"
         self.query.exec_(query)
@@ -192,6 +206,11 @@ class Model(QSqlQueryModel):
         while self.query.next():
             return self.query.value(0)
 
+    def get_last_id(self, table):
+        self.exec_("SELECT DISTINCT last_insert_rowid() FROM " + table)
+        while self.query.next():
+            return self.query.value(0)
+
     def set_infos(self, directeur_nom=None, directeur_prenom=None, centre=None):
         q = "UPDATE infos SET \
         directeur_nom = '"+directeur_nom+"',\
@@ -212,9 +231,10 @@ class Model(QSqlQueryModel):
         
     def exec_(self, request):
         req = self.query.exec_(request)
-        print(req)
+        print(req,":",request)
         if req == False:
             print(self.query.lastError().databaseText())
+        return req
 
 class InfosModel(QSqlTableModel):
     def __init__(self, parent, db):
