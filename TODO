@@ -6,6 +6,7 @@ TODO
  * update de la colonne cumul lorsqu'on change un prix.
  * Empecher qu'on puisse enregistrer des pièces avec des subdivisions non vallidées
  * À la fermeture d'une pièce comptable, elimiter les subdivisions orphelines
+ * Lock : grisé moins prononcé
 
 DONE
 

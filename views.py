@@ -94,26 +94,43 @@ class Form(QDialog):
             print('sub price:', subdivision.prix.text())
             total += float(subdivision.prix.text())
         return total
+            
+    def all_subdivisions_valid(self):
+        for subdivision in self.subdivisions:
+            if subdivision.is_locked:
+                return False
+        return True
 
     def verif_datas(self):
         if self.fournisseur.currentText() == "":
             QMessageBox.warning(self, "Erreur", "Il faut entrer un nom de fournisseur")
         elif self.price.text() == "":
             QMessageBox.warning(self, "Erreur", "Il faut entrer un prix total")
+        elif self.all_subdivisions_valid():
+            QMessageBox.warning(self,
+                "Erreur",
+                "Toutes les subdivisions ne sont pas validées")
         elif self.get_total_subdivisions_price() != float(self.price.text()):
-            QMessageBox.warning(self, "Erreur", "La somme des subdivisions est différente du prix total indiqué")
+            QMessageBox.warning(self,
+                "Erreur",
+                "La somme des subdivisions est différente du prix total indiqué")
         else:
-            record = {}
-            #below : can be improved for faster ?
-            f_id = self.model.get_fournisseurs()[self.fournisseur.currentText()]
-            p_id = self.model.get_typesPayement()[self.typePayement.currentText()]
-            record["fournisseur_id"] = f_id
-            record["date"] = self.date.selectedDate().toString('yyyy-MM-dd')
-            record["total"] = self.price.text()
-            record["typePayement_id"] = p_id
-            self.model.add_piece_comptable(record)
-            self.model.update_table_model()
-            self.price.clear()
+            self.submit_datas()
+    
+    def submit_datas(self):    
+        record = {}
+        #below : can be improved for faster ?
+        f_id = self.model.get_fournisseurs()[self.fournisseur.currentText()]
+        p_id = self.model.get_typesPayement()[self.typePayement.currentText()]
+        record["fournisseur_id"] = f_id
+        record["date"] = self.date.selectedDate().toString('yyyy-MM-dd')
+        record["total"] = self.price.text()
+        record["typePayement_id"] = p_id
+        self.model.add_piece_comptable(record)
+        for subdivision in self.subdivisions:
+            subdivision.submit_datas()
+        self.model.update_table_model()
+        self.price.clear()
 
     def refresh_fournisseurs(self):
         self.fournisseur.clear()
@@ -147,7 +164,7 @@ class SubdivisionView():
         self.submit_button.setMaximumWidth(20)
         self.remove_button = QPushButton("-")
         self.remove_button.setMaximumWidth(20)
-        self.submit_button.clicked.connect(self.submit_datas)
+        self.submit_button.clicked.connect(self.verif_datas)
         self.remove_button.clicked.connect(self.clear_layout)
 
         self.layout.addWidget(self.product, stretch=8)
@@ -173,12 +190,17 @@ class SubdivisionView():
         self.code_analytique.setEnabled(False)
         self.prix.setEnabled(False)
 
-    def submit_datas(self):
+    def verif_datas(self):
         if self.product.text() == "":
             QMessageBox.warning(self.parent, "Erreur", "Il faut entrer un nom de produit")
         elif self.prix.text() == "":
             QMessageBox.warning(self.parent, "Erreur", "Il faut entrer un prix")
         else:
+            self.submit_button.deleteLater()
+            self.layout.insertWidget(4, self.remove_button)
+            self.lock()
+
+    def submit_datas(self):
             CO_id = self.model.get_codesCompta()[self.code_compta.currentText()]
             CA_id = self.model.get_codes_analytiques()[self.code_analytique.currentText()]
             datas = {}
@@ -188,9 +210,7 @@ class SubdivisionView():
             print(self.prix.text())
             datas["prix"] = self.prix.text()
             if self.parent.model.add_subdivision(datas):
-                self.submit_button.deleteLater()
-                self.layout.insertWidget(4, self.remove_button)
-                self.lock()
+                print("subdivision ", self, "submited")
             else:
                 QMessageBox.warning(self.parent, "Erreur", "Erreur de requête")
 
