@@ -37,23 +37,37 @@ class Form(QDialog):
         quitButton = QPushButton("Fermer")
 
         self.grid = QGridLayout()
+        self.piece_layout = QFormLayout(self)
 
-        self.field_index = 0
-        self.add_field("Fournisseur:", self.fournisseur)
-        self.add_field("Date:", self.date)
-        self.hbox = QHBoxLayout()
-        self.hbox.addWidget(self.price)
-        self.hbox.addWidget(self.typePayement)
-        self.add_layout("Prix Total:",self.hbox)
+        price_box = QHBoxLayout()
+        price_box.addWidget(self.price)
+        price_box.addWidget(self.typePayement)
+        self.piece_layout.addRow(QLabel("Fournisseur:"), self.fournisseur)
+        self.piece_layout.addRow(QLabel("Date:"), self.date)
+        # Subdivisions BOX
+        self.subdivisions_grid = QGridLayout()
+        box_subdivisions = QGroupBox('', self)
+        box_subdivisions.setLayout(self.subdivisions_grid)
+        self.subdivision_index = 1
+        add_button = QPushButton('Ajouter une subdivision')
+        self.subdivisions_grid.addWidget(add_button, 100, 0, 100, 7)
         self.subdivisions = []
         self.add_subdivision()
-        self.grid.addWidget(QLabel("Subdivisions"), self.field_index -1, 0)
-        self.grid.addWidget(self.submitButton, 100, 0)
-        self.grid.addWidget(quitButton, 100, 1)
-
+        #self.grid.addWidget(box_subdivisions, 0, 1)
+        self.piece_layout.addRow(QLabel("Subdivisions:"), box_subdivisions)
+        self.piece_layout.addRow(QLabel("Prix total:"), price_box)
+        buttons_box = QHBoxLayout()
+        buttons_box.addWidget(self.submitButton)
+        buttons_box.addWidget(quitButton)
+        self.piece_layout.addRow(buttons_box)
+        box_piece = QGroupBox('Piece comptable', self)
+        box_piece.setLayout(self.piece_layout)
+        self.grid.addWidget(box_piece, 0,0)
+        
         self.setLayout(self.grid)
 
         self.submitButton.clicked.connect(self.verif_datas)
+        add_button.clicked.connect(self.add_subdivision)
         quitButton.clicked.connect(self.reject)
     
     def add_field(self, label_name, widget):
@@ -67,10 +81,12 @@ class Form(QDialog):
         self.field_index += 1
 
     def add_subdivision(self):
-        subdivision = SubdivisionView(self, self.field_index)
+        subdivision = SubdivisionView(self, self.subdivision_index)
         self.subdivisions.append(subdivision)
-        self.grid.addLayout(self.subdivisions[-1].layout, self.field_index, 1)
-        self.field_index += 1
+        self.subdivisions_grid.addLayout(
+            self.subdivisions[-1].layout,
+            self.subdivision_index, 1)
+        self.subdivision_index += 1
 
     def get_total_subdivisions_price(self):
         total = 0
@@ -119,6 +135,7 @@ class SubdivisionView():
         self.parent = parent
         self.index = index
         self.model = parent.model
+        self.is_locked = False
         #self.grid = QGridLayout()
         self.layout = QHBoxLayout()
         self.product = QLineEdit()
@@ -131,7 +148,7 @@ class SubdivisionView():
         regexp = QRegExp('\d[\d\,\.]+')
         self.prix.setValidator(QRegExpValidator(regexp))
         self.prix.setPlaceholderText("Prix")
-        self.submit_button = QPushButton("+")
+        self.submit_button = QPushButton("OK")
         self.submit_button.setMaximumWidth(20)
         self.remove_button = QPushButton("-")
         self.remove_button.setMaximumWidth(20)
@@ -154,6 +171,13 @@ class SubdivisionView():
         for code_analytique, code in list(self.model.get_codes_analytiques().items()):
             self.code_analytique.addItem(code_analytique)
 
+    def lock(self):
+        self.is_locked = True
+        self.product.setEnabled(False)
+        self.code_compta.setEnabled(False)
+        self.code_analytique.setEnabled(False)
+        self.prix.setEnabled(False)
+
     def submit_datas(self):
         if self.product.text() == "":
             QMessageBox.warning(self.parent, "Erreur", "Il faut entrer un nom de produit")
@@ -171,7 +195,7 @@ class SubdivisionView():
             if self.parent.model.add_subdivision(datas):
                 self.submit_button.deleteLater()
                 self.layout.insertWidget(4, self.remove_button)
-                self.parent.add_subdivision()
+                self.lock()
             else:
                 QMessageBox.warning(self.parent, "Erreur", "Erreur de requête")
 
