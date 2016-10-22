@@ -65,7 +65,6 @@ class Model(QSqlQueryModel):
         Fournisseur_id integer NOT NULL,\
         Date varchar(10),\
         total real,\
-        CodeCompta int NOT NULL,\
         TypePayement_id int NOT NULL,\
         FOREIGN KEY (Fournisseur_id) REFERENCES fournisseurs(id),\
         FOREIGN KEY (TypePayement_id) REFERENCES type_payement(id)\
@@ -155,10 +154,9 @@ class Model(QSqlQueryModel):
     def add_piece_comptable(self, datas):
         query = "INSERT INTO pieces_comptables (Fournisseur_id,  Date,\
         Total, TypePayement_id)"
-        query += " VALUES "
-        query += "("\
+        query += " VALUES ("\
         +str(datas["fournisseur_id"])+",'"\
-        +str(datas["date"])+"','"\
+        +str(datas["date"])+"',"\
         +datas["total"]+","\
         +str(datas["typePayement_id"])\
         +")"

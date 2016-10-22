@@ -95,16 +95,12 @@ class Form(QDialog):
             total += float(subdivision.prix.text())
         return total
 
-    def clear_all(self):
-        self.product.clear()
-        self.price.clear()
-
     def verif_datas(self):
         if self.fournisseur.currentText() == "":
             QMessageBox.warning(self, "Erreur", "Il faut entrer un nom de fournisseur")
         elif self.price.text() == "":
             QMessageBox.warning(self, "Erreur", "Il faut entrer un prix total")
-        elif self.get_total_subdivisions_price() != self.price.text():
+        elif self.get_total_subdivisions_price() != float(self.price.text()):
             QMessageBox.warning(self, "Erreur", "La somme des subdivisions est différente du prix total indiqué")
         else:
             record = {}
@@ -113,12 +109,11 @@ class Form(QDialog):
             p_id = self.model.get_typesPayement()[self.typePayement.currentText()]
             record["fournisseur_id"] = f_id
             record["date"] = self.date.selectedDate().toString('yyyy-MM-dd')
-            record["product"] = self.product.text()
-            record["price"] = self.price.text()
+            record["total"] = self.price.text()
             record["typePayement_id"] = p_id
             self.model.add_piece_comptable(record)
             self.model.update_table_model()
-            self.clear_all()
+            self.price.clear()
 
     def refresh_fournisseurs(self):
         self.fournisseur.clear()

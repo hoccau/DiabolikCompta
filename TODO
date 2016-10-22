@@ -4,6 +4,8 @@ TODO
  * inverser l'ordre de la table (dernier enregistrement en premier)?
  * date en format francophone
  * update de la colonne cumul lorsqu'on change un prix.
+ * Empecher qu'on puisse enregistrer des pièces avec des subdivisions non vallidées
+ * À la fermeture d'une pièce comptable, elimiter les subdivisions orphelines
 
 DONE
 
