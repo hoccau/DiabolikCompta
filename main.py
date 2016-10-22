@@ -52,7 +52,6 @@ class MainWindow(QMainWindow):
         
         self.model = Model(self)
         self.retrieve_db()
-        self.form = Form(self)
 
         self.mainView = QTableView(self)
         self.mainView.setModel(self.model.qt_table_compta)
@@ -134,6 +133,7 @@ class MainWindow(QMainWindow):
         InfosCentreDialog(self)
 
     def addDatas(self):
+        self.form = Form(self)
         self.form.show()
 
     def addFournisseur(self):
