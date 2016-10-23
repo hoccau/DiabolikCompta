@@ -142,8 +142,8 @@ class MainWindow(QMainWindow):
         if ok and name != "":
             res = self.model.add_fournisseur(name)
             if res == True:
-                self.form.refresh_fournisseurs()
                 self.model.update_table_model()
+                return True
             elif res == "UNIQUE constraint failed: fournisseurs.NOM":
                 QMessageBox.warning(self, "Erreur", "Ce nom existe déjà.")
             else:

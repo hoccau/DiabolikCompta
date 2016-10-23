@@ -133,9 +133,9 @@ class Model(QSqlQueryModel):
         return req
 
     def add_piece_comptable(self, datas):
-        query = "INSERT INTO pieces_comptables (Fournisseur_id,  Date,\
-        Total, TypePayement_id)"
-        query += " VALUES ("\
+        query = "INSERT INTO pieces_comptables (id, Fournisseur_id,  Date,\
+        Total, TypePayement_id) VALUES ("\
+        +str(datas["id"])+","\
         +str(datas["fournisseur_id"])+",'"\
         +str(datas["date"])+"',"\
         +datas["total"]+","\

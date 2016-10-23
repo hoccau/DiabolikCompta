@@ -20,6 +20,7 @@ class Form(QDialog):
         self.setWindowTitle("Pièce comptable #"+str(self.id))
         
         nameFournisseur = QLabel("Fournisseur:")
+        add_fournisseur = QPushButton('Ajouter')
         self.fournisseur = QComboBox()
         self.refresh_fournisseurs()
 
@@ -34,7 +35,7 @@ class Form(QDialog):
         self.date = QCalendarWidget()
 
         self.submitButton = QPushButton("Enregistrer")
-        quitButton = QPushButton("Fermer")
+        quitButton = QPushButton("Annuler la pièce")
 
         self.grid = QGridLayout()
         self.piece_layout = QFormLayout(self)
@@ -42,7 +43,11 @@ class Form(QDialog):
         price_box = QHBoxLayout()
         price_box.addWidget(self.price)
         price_box.addWidget(self.typePayement)
-        self.piece_layout.addRow(QLabel("Fournisseur:"), self.fournisseur)
+
+        fournisseurs_box = QHBoxLayout()
+        fournisseurs_box.addWidget(self.fournisseur, stretch=10)
+        fournisseurs_box.addWidget(add_fournisseur)
+        self.piece_layout.addRow(QLabel("Fournisseur:"), fournisseurs_box)
         self.piece_layout.addRow(QLabel("Date:"), self.date)
         # Subdivisions BOX
         self.subdivisions_grid = QGridLayout()
@@ -69,6 +74,7 @@ class Form(QDialog):
         self.submitButton.clicked.connect(self.verif_datas)
         add_button.clicked.connect(self.add_subdivision)
         quitButton.clicked.connect(self.reject)
+        add_fournisseur.clicked.connect(self.add_fournisseur)
     
     def add_field(self, label_name, widget):
         self.grid.addWidget(QLabel(label_name), self.field_index, 0)
@@ -88,6 +94,11 @@ class Form(QDialog):
             self.subdivision_index, 1)
         self.subdivision_index += 1
 
+    def add_fournisseur(self):
+        f = self.parent.addFournisseur()
+        if f:
+            self.refresh_fournisseurs()
+
     def get_total_subdivisions_price(self):
         total = 0
         for subdivision in self.subdivisions:
@@ -101,11 +112,18 @@ class Form(QDialog):
                 return False
         return True
 
+    def clear_all(self):
+        self.price.clear()
+        for subdivision in self.subdivisions:
+            subdivision.clear_layout()
+
     def verif_datas(self):
         if self.fournisseur.currentText() == "":
             QMessageBox.warning(self, "Erreur", "Il faut entrer un nom de fournisseur")
         elif self.price.text() == "":
             QMessageBox.warning(self, "Erreur", "Il faut entrer un prix total")
+        elif len(self.subdivisions) < 1:
+            QMessageBox.warning(self, "Erreur", "Il faut entrer au minimum une subdivision")
         elif self.all_subdivisions_valid():
             QMessageBox.warning(self,
                 "Erreur",
@@ -122,6 +140,7 @@ class Form(QDialog):
         #below : can be improved for faster ?
         f_id = self.model.get_fournisseurs()[self.fournisseur.currentText()]
         p_id = self.model.get_typesPayement()[self.typePayement.currentText()]
+        record["id"] = f_id
         record["fournisseur_id"] = f_id
         record["date"] = self.date.selectedDate().toString('yyyy-MM-dd')
         record["total"] = self.price.text()
@@ -130,7 +149,7 @@ class Form(QDialog):
         for subdivision in self.subdivisions:
             subdivision.submit_datas()
         self.model.update_table_model()
-        self.price.clear()
+        self.close()
 
     def refresh_fournisseurs(self):
         self.fournisseur.clear()
@@ -148,7 +167,6 @@ class SubdivisionView():
         self.index = index
         self.model = parent.model
         self.is_locked = False
-        #self.grid = QGridLayout()
         self.layout = QHBoxLayout()
         self.product = QLineEdit()
         self.product.setPlaceholderText("Désignation")
