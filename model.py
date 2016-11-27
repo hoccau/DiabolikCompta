@@ -169,8 +169,8 @@ class Model(QSqlQueryModel):
         return self.query2dic()
 
     def get_totals_by_codecompta(self):
-        query = "SELECT codecompta.NOM, sum(total) FROM pieces_comptables\
-        INNER JOIN codecompta ON codecompta.code = codecompta GROUP BY codecompta"
+        query = "SELECT codecompta.NOM, sum(prix) FROM subdivisions\
+        INNER JOIN codecompta ON codecompta.code = code_compta_id GROUP BY code_compta_id"
         self.exec_(query)
         return self.query2dic()
         
