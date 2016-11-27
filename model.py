@@ -59,7 +59,7 @@ class Model(QSqlQueryModel):
         code INTEGER PRIMARY KEY,\
         nom VARCHAR(20))")
         self.exec_("INSERT INTO code_analytique (code, nom) VALUES\
-        (200, 'centre')")
+        (200, 'Centre')")
         self.exec_("INSERT INTO code_analytique (code, nom) VALUES\
         (600, 'Véhicule')")
         self.exec_("CREATE TABLE pieces_comptables(\

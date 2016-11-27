@@ -200,7 +200,9 @@ class SubdivisionView():
     
     def refresh_code_analytique(self):
         self.code_analytique.clear()
-        for code_analytique, code in list(self.model.get_codes_analytiques().items()):
+        names = list(self.model.get_codes_analytiques().keys())
+        names.sort() #yes it's a bad way...
+        for code_analytique in names:
             self.code_analytique.addItem(code_analytique)
 
     def lock(self):
