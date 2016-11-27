@@ -73,6 +73,7 @@ class Model(QSqlQueryModel):
         )")
         self.exec_("CREATE TABLE subdivisions(\
         id INTEGER PRIMARY KEY,\
+        designation,\
         piece_comptable_id INTEGER,\
         code_compta_id INTEGER NOT NULL,\
         code_analytique_id INTEGER,\
@@ -145,16 +146,17 @@ class Model(QSqlQueryModel):
 
     def add_subdivision(self, datas):
         query = "INSERT INTO subdivisions (\
-        piece_comptable_id, code_compta_id, code_analytique_id, prix) VALUES("\
-        +str(datas['piece_comptable_id'])+','\
+        piece_comptable_id, designation, code_compta_id, code_analytique_id, prix) VALUES("\
+        +str(datas['piece_comptable_id'])+", '"\
+        +str(datas['designation'])+"',"\
         +str(datas['code_compta_id'])+','\
         +str(datas['code_analytique_id'])+','\
         +str(datas['prix'])+')'
         q = self.exec_(query)
         return q
 
-    def get_last_id(self):
-        query = "SELECT id FROM pieces_comptables ORDER BY id DESC LIMIT 1"
+    def get_last_id(self, table):
+        query = "SELECT id FROM "+table+" ORDER BY id DESC LIMIT 1"
         self.exec_(query)
         while self.query.next():
             return self.query.value(0)
@@ -183,7 +185,7 @@ class Model(QSqlQueryModel):
         while self.query.next():
             return self.query.value(0)
 
-    def get_last_id(self, table):
+    def get_last_rowid(self, table):
         self.exec_("SELECT DISTINCT last_insert_rowid() FROM " + table)
         while self.query.next():
             return self.query.value(0)

@@ -140,7 +140,7 @@ class Form(QDialog):
         #below : can be improved for faster ?
         f_id = self.model.get_fournisseurs()[self.fournisseur.currentText()]
         p_id = self.model.get_typesPayement()[self.typePayement.currentText()]
-        record["id"] = f_id
+        record["id"] = str(self.id)
         record["fournisseur_id"] = f_id
         record["date"] = self.date.selectedDate().toString('yyyy-MM-dd')
         record["total"] = self.price.text()
@@ -175,6 +175,8 @@ class SubdivisionView():
         self.refresh_code_compta()
         self.refresh_code_analytique()
         self.prix = QLineEdit()
+        for widget in (self.prix, self.product, self.code_compta, self.code_analytique):
+            widget.setStyleSheet(':disabled {color:#333}')
         regexp = QRegExp('\d[\d\,\.]+')
         self.prix.setValidator(QRegExpValidator(regexp))
         self.prix.setPlaceholderText("Prix")
@@ -223,6 +225,7 @@ class SubdivisionView():
             CA_id = self.model.get_codes_analytiques()[self.code_analytique.currentText()]
             datas = {}
             datas["piece_comptable_id"] = self.parent.id
+            datas["designation"] = self.product.text()
             datas["code_compta_id"] = CO_id
             datas["code_analytique_id"] = CA_id
             print(self.prix.text())
