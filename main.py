@@ -36,9 +36,11 @@ class MainWindow(QMainWindow):
             'Subdivisions', self.switch_view_subdivisions)
         switch2pieces_comptablesAction = self.add_action(
             'Pièces comptables', self.switch_view_pieces_comptables)
+        exportPdfAction = self.add_action('Exporter un rapport', self.export_pdf)
 
         fileMenu = menubar.addMenu('&Fichier')
         fileMenu.addAction(openAction)
+        fileMenu.addAction(exportPdfAction)
         fileMenu.addAction(exitAction)
         edit_menu = menubar.addMenu('&Édition')
         edit_menu.addAction(delRowAction)
@@ -136,6 +138,15 @@ class MainWindow(QMainWindow):
 
     def set_infos(self):
         InfosCentreDialog(self)
+
+    def export_pdf(self):
+        filename, _format = QFileDialog.getSaveFileName(
+            self, "Exporter le rapport", None, 'PDF(*.pdf)')
+        if filename:
+            if filename[-4:] != '.pdf':
+                filename += '.pdf'
+            import export
+            export.create_pdf(filename, model=self.model)
 
     def addDatas(self):
         self.form = Form(self)
