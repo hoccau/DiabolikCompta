@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*- 
 
 from PyQt5.QtWidgets import *
-from PyQt5.QtCore import QRegExp
+from PyQt5.QtCore import QRegExp, QDate
 from PyQt5.QtGui import QRegExpValidator
 from PyQt5.QtChart import *
 
@@ -246,6 +246,42 @@ class SubdivisionView():
             else:
                 self.clearLayout(item.layout())
         self.parent.subdivisions.remove(self)
+
+class AddInputDialog(QDialog):
+    def __init__(self, parent=None):
+        super(AddInputDialog, self).__init__(parent)
+        self.model = parent.model
+        self.setWindowTitle("Ajouter une entrée d'argent")
+        
+        self.montant = QLineEdit()
+        regexp = QRegExp('\d[\d\.]+')
+        self.montant.setValidator(QRegExpValidator(regexp))
+        self.montant.setPlaceholderText("Montant")
+        self.date = QDateEdit()
+        self.note = QTextEdit()
+        buttons = QDialogButtonBox(
+            QDialogButtonBox.Ok | QDialogButtonBox.Cancel,
+            self)
+        buttons.accepted.connect(self.submit)
+        buttons.rejected.connect(self.reject)
+
+        layout = QFormLayout(self)
+        layout.addRow('Date:', self.date)
+        layout.addRow('Montant:', self.montant)
+        layout.addRow('Commentaire:', self.note)
+        layout.addRow('', buttons)
+
+        self.exec_()
+
+    def submit(self):
+        date = QDate.fromString(self.date.text(),'dd/MM/yyyy')
+        dic = {
+            'date':date.toString('yyyy-MM-dd'),
+            'montant':float(self.montant.text()),
+            'comment':self.note.toPlainText()
+            }
+        self.model.add(dic,'inputs')
+        self.accept()
 
 class CodeComptaDialog(QDialog):
     def __init__(self, parent=None):

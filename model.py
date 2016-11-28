@@ -87,6 +87,11 @@ class Model(QSqlQueryModel):
         )")
         self.exec_("CREATE UNIQUE INDEX idx_CODE ON codecompta (CODE)")
         self.exec_("CREATE UNIQUE INDEX idx_NOM ON fournisseurs (NOM)")
+        self.exec_("CREATE TABLE inputs(\
+        id INTEGER PRIMARY KEY,\
+        date varchar(10),\
+        montant real,\
+        comment varchar(30) )")
 
     def connect_db(self, db_name):
         self.db.setDatabaseName(db_name)
@@ -142,6 +147,18 @@ class Model(QSqlQueryModel):
         +str(datas['prix'])+')'
         q = self.exec_(query)
         return q
+
+    def add(self, datas, table):
+        col_title = ', '.join([str(i) for i in list(datas.keys())])
+        values = []
+        for value in list(datas.values()):
+            if type(value) == str:
+                values.append("'"+value+"'")
+            else:
+                values.append(str(value))
+        values = ', '.join(values)
+        query = "INSERT INTO "+table+" ("+col_title+') VALUES('+values+')'
+        self.exec_(query)
 
     def get_last_id(self, table):
         query = "SELECT id FROM "+table+" ORDER BY id DESC LIMIT 1"

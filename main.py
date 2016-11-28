@@ -30,6 +30,7 @@ class MainWindow(QMainWindow):
         addFormAction = self.add_action('&Pièce comptable', self.addDatas)
         addFournisseurAction = self.add_action('&Fournisseur', self.addFournisseur)
         addCodeComptaAction = self.add_action('&Code compta', self.addCodeCompta)
+        addInputAction = self.add_action("Entrée d'argent", self.add_input)
         setInfosAction = self.add_action('Editer les infos du centre', self.set_infos)
         ViewRapportAction = self.add_action('Rapport', self.viewRapport)
         switch2subdivisionsAction = self.add_action(
@@ -53,6 +54,7 @@ class MainWindow(QMainWindow):
         addMenu.addAction(addFormAction)
         addMenu.addAction(addFournisseurAction)
         addMenu.addAction(addCodeComptaAction)
+        addMenu.addAction(addInputAction)
 
         self.statusBar().showMessage('Ready')
         self.setMinimumSize(850,300)
@@ -174,6 +176,9 @@ class MainWindow(QMainWindow):
             else:
                 self.form.refresh_codeCompta()
                 self.model.update_table_model()
+
+    def add_input(self):
+        res = AddInputDialog(self)
 
 if __name__ == '__main__':
     import sys, os
