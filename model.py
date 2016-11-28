@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*- 
 
 from PyQt5.QtSql import QSqlQueryModel, QSqlDatabase, QSqlQuery, QSqlRelationalTableModel, QSqlRelation, QSqlTableModel
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QDate
 
 DEBUG_SQL = True
 
@@ -149,6 +149,25 @@ class Model(QSqlQueryModel):
         while self.query.next():
             return self.query.value(0)
 
+    def get_general_totals(self):
+        self.exec_('SELECT sum(total) FROM pieces_comptables')
+        while self.query.next():
+            return self.query.value(0)
+
+    def get_price_by_child(self):
+        return self.get_general_totals()\
+        / float(self.get_infos()['nombre_enfants'])
+
+    def get_days(self):
+        self.exec_("SELECT startdate, enddate FROM infos")
+        while self.query.next():
+            start = QDate.fromString(self.query.value(0),'yyyy-MM-dd')
+            end = QDate.fromString(self.query.value(1), 'yyyy-MM-dd')
+        return start.daysTo(end)
+
+    def get_price_by_child_by_day(self):
+        return self.get_price_by_child() / float(self.get_days())
+
     def get_totals_by_payement(self):
         query = "SELECT type_payement.NOM, sum(total) FROM pieces_comptables\
         INNER JOIN type_payement ON type_payement.id = typePayement_id\
@@ -159,6 +178,20 @@ class Model(QSqlQueryModel):
     def get_totals_by_codecompta(self):
         query = "SELECT codecompta.NOM, sum(prix) FROM subdivisions\
         INNER JOIN codecompta ON codecompta.code = code_compta_id GROUP BY code_compta_id"
+        self.exec_(query)
+        return self.query2dic()
+
+    def get_totals_by_code_analytique(self):
+        query = 'SELECT code_analytique.nom, sum(prix) FROM subdivisions\
+        INNER JOIN code_analytique ON code_analytique.code = code_analytique_id\
+        GROUP BY code_analytique_id'
+        self.exec_(query)
+        return self.query2dic()
+    
+    def get_totals_by_fournisseur(self):
+        query = 'SELECT fournisseurs.nom, sum(total) FROM pieces_comptables\
+        INNER JOIN fournisseurs ON fournisseurs.id = fournisseur_id\
+        GROUP BY fournisseur_id'
         self.exec_(query)
         return self.query2dic()
         
@@ -186,15 +219,21 @@ class Model(QSqlQueryModel):
         self.exec_(q)
 
     def get_infos(self):
-        q= "SELECT directeur_nom, directeur_prenom, centre FROM infos"
-        req = self.query.exec_(q)
-        if self.query.isValid():
-            while self.query.next():
-                print(self.query.value(0), self.query.value(1), self.query.value(2))
-                return self.query.value(0), self.query.value(1), self.value(2)
-        else:
-            return " ", " ", " "
-        
+        self.exec_('PRAGMA table_info(infos)')
+        fields = []
+        while self.query.next():
+            fields.append(self.query.value(1))
+        return self.row2dic(fields=fields, table='infos')
+    
+    def row2dic(self, fields=[], table=''):
+        q = 'SELECT ' + ', '.join(fields) + ' FROM ' + table
+        self.exec_(q)
+        while self.query.next():
+            dic = {}
+            for i, field in enumerate(fields):
+                dic[field] = self.query.value(i)
+            return dic
+
     def exec_(self, request):
         req = self.query.exec_(request)
         if DEBUG_SQL:
