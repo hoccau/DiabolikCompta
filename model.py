@@ -17,10 +17,13 @@ class Model(QSqlQueryModel):
         self.exec_("CREATE TABLE infos(\
         centre varchar(20),\
         directeur_nom varchar(20),\
-        directeur_prenom varchar(20)\
+        nombre_enfants int,\
+        place varchar(20),\
+        startdate varchar(10),\
+        enddate varchar(10)\
         )")
         self.exec_("INSERT INTO infos(\
-        centre, directeur_nom, directeur_prenom) VALUES (\
+        centre, directeur_nom, nombre_enfants) VALUES (\
         NULL, NULL, NULL)")
         self.exec_("CREATE TABLE fournisseurs(\
         id integer PRIMARY KEY,\
@@ -89,23 +92,8 @@ class Model(QSqlQueryModel):
         self.db.setDatabaseName(db_name)
         self.db.open()
         self.query = QSqlQuery()
-        self.qt_table_compta = QSqlRelationalTableModel(self, self.db)
-        self.update_table_model()
+        self.qt_table_compta = TableModel(self, self.db)
         self.qt_table_infos = InfosModel(self, self.db)
-
-    def update_table_model(self):
-        self.qt_table_compta.setTable('pieces_comptables')
-        f_rel = QSqlRelation("fournisseurs","id","NOM")
-        c_rel = QSqlRelation("codecompta","code","NOM")
-        p_rel = QSqlRelation("type_payement","id","NOM")
-        self.qt_table_compta.setRelation(1, f_rel)
-        self.qt_table_compta.setRelation(5, c_rel)
-        self.qt_table_compta.setRelation(6, p_rel)
-        self.qt_table_compta.select()
-        self.qt_table_compta.setHeaderData(0, Qt.Horizontal, "Identification")
-        self.qt_table_compta.setHeaderData(1, Qt.Horizontal, "Fournisseur")
-        self.qt_table_compta.setHeaderData(5, Qt.Horizontal, "Code")
-        self.qt_table_compta.setHeaderData(6, Qt.Horizontal, "Moyen de payement")
 
     def get_fournisseurs(self):
         self.exec_("SELECT NOM, ID FROM fournisseurs")
@@ -221,3 +209,33 @@ class InfosModel(QSqlTableModel):
 
         self.setTable("infos")
         self.select()
+
+class TableModel(QSqlRelationalTableModel):
+    def __init__(self, parent, db):
+        super(TableModel, self).__init__(parent, db)
+
+        self.set_pieces_comptables()
+    
+    def set_pieces_comptables(self):
+        self.setTable('pieces_comptables')
+        self.relational_mapping(
+            ["fournisseurs","id","NOM",1,"Fournisseur"],
+            ["type_payement","id","NOM",4,"Moyen de payement"])
+        self.setHeaderData(0, Qt.Horizontal, "Identification")
+
+    def set_subdivisions(self):
+        self.setTable('subdivisions')
+        self.relational_mapping(
+            ["codecompta","code","NOM",3,"Catégorie comptable"],
+            ["code_analytique","code","NOM",4,"Catégorie analytique"])
+
+    def relational_mapping(self, *args):
+        """
+        relation : [table, id, reference, nbr_col, name_col]
+        """
+        for relation in args:
+            rel = QSqlRelation(relation[0], relation[1], relation[2])
+            self.setRelation(relation[3], rel)
+            self.setHeaderData(relation[3], Qt.Horizontal, relation[4])
+        self.select()
+

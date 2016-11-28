@@ -32,6 +32,10 @@ class MainWindow(QMainWindow):
         addCodeComptaAction = self.add_action('&Code compta', self.addCodeCompta)
         setInfosAction = self.add_action('Editer les infos du centre', self.set_infos)
         ViewRapportAction = self.add_action('Rapport', self.viewRapport)
+        switch2subdivisionsAction = self.add_action(
+            'Subdivisions', self.switch_view_subdivisions)
+        switch2pieces_comptablesAction = self.add_action(
+            'Pièces comptables', self.switch_view_pieces_comptables)
 
         fileMenu = menubar.addMenu('&Fichier')
         fileMenu.addAction(openAction)
@@ -41,6 +45,8 @@ class MainWindow(QMainWindow):
         edit_menu.addAction(setInfosAction)
         view_menu = menubar.addMenu('&Vue')
         view_menu.addAction(ViewRapportAction)
+        view_menu.addAction(switch2subdivisionsAction)
+        view_menu.addAction(switch2pieces_comptablesAction)
         addMenu = menubar.addMenu('&Ajouter')
         addMenu.addAction(addFormAction)
         addMenu.addAction(addFournisseurAction)
@@ -52,11 +58,20 @@ class MainWindow(QMainWindow):
         
         self.model = Model(self)
         self.retrieve_db()
+        
+        self.set_table_main_view(self.model.qt_table_compta)
 
+    def set_table_main_view(self, model):
         self.mainView = QTableView(self)
-        self.mainView.setModel(self.model.qt_table_compta)
+        self.mainView.setModel(model)
         self.mainView.setItemDelegate(QSqlRelationalDelegate())
         self.setCentralWidget(self.mainView)
+
+    def switch_view_subdivisions(self):
+        self.model.qt_table_compta.set_subdivisions()
+
+    def switch_view_pieces_comptables(self):
+        self.model.qt_table_compta.set_pieces_comptables()
 
     def add_action(self, name, function_name, shortcut=None):
         action = QAction(name, self)
@@ -73,18 +88,8 @@ class MainWindow(QMainWindow):
         model = self.mainView.currentIndex().model()
         row_id = model.index(row, 0).data()
         print("row to remove:", row)
-        self.model.qt_table_compta.removeRow(row)
-        self.model.update_cumul(row_id + 1)
-        self.model.update_table_model()
-
-    def show_row(self):
-        row = self.mainView.currentIndex().row()
-        model = self.mainView.currentIndex().model()
-        print("id:", model.index(row,0).data(), "m2:", m2)
-        print("row", row)
-        
-    def show_cumul(self):
-        self.model.update_cumul(3)
+        #self.model.qt_table_compta.removeRow(row)
+        #self.model.qt_table_compta.update_table_model()
 
     def open_db(self):
         file_name = QFileDialog.getOpenFileName(self, 'Open File')
@@ -142,7 +147,6 @@ class MainWindow(QMainWindow):
         if ok and name != "":
             res = self.model.add_fournisseur(name)
             if res == True:
-                self.model.update_table_model()
                 return True
             elif res == "UNIQUE constraint failed: fournisseurs.NOM":
                 QMessageBox.warning(self, "Erreur", "Ce nom existe déjà.")

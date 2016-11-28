@@ -26,7 +26,7 @@ class Form(QDialog):
 
         namePrice = QLabel("Prix (€)")
         self.price = QLineEdit()
-        regexp = QRegExp('\d[\d\,\.]+')
+        regexp = QRegExp('\d[\d\.]+')
         self.price.setValidator(QRegExpValidator(regexp))
 
         nameTypePayement = QLabel("Type de payement")
@@ -148,7 +148,7 @@ class Form(QDialog):
         self.model.add_piece_comptable(record)
         for subdivision in self.subdivisions:
             subdivision.submit_datas()
-        self.model.update_table_model()
+        self.model.qt_table_compta.set_pieces_comptables()
         self.close()
 
     def refresh_fournisseurs(self):
@@ -177,7 +177,7 @@ class SubdivisionView():
         self.prix = QLineEdit()
         for widget in (self.prix, self.product, self.code_compta, self.code_analytique):
             widget.setStyleSheet(':disabled {color:#333}')
-        regexp = QRegExp('\d[\d\,\.]+')
+        regexp = QRegExp('\d[\d\.]+')
         self.prix.setValidator(QRegExpValidator(regexp))
         self.prix.setPlaceholderText("Prix")
         self.submit_button = QPushButton("OK")
@@ -283,24 +283,33 @@ class InfosCentreDialog(QDialog):
     def __init__(self, parent=None):
         super(InfosCentreDialog, self).__init__(parent)
 
-        self.setWindowTitle("Centre")
+        self.setWindowTitle("Informations du centre")
         model = parent.model.qt_table_infos
         mapper = QDataWidgetMapper(self)
         mapper.setModel(model)
 
         self.centre = QLineEdit()
         self.directeur_nom = QLineEdit()
-        self.directeur_prenom = QLineEdit()
+        self.nbr_children = QLineEdit()
+        self.place = QLineEdit()
+        self.startdate = QDateEdit()
+        self.enddate = QDateEdit()
 
         mapper.addMapping(self.centre, model.fieldIndex("centre"))
         mapper.addMapping(self.directeur_nom, model.fieldIndex("directeur_nom"))
-        mapper.addMapping(self.directeur_prenom, model.fieldIndex("directeur_prenom"))
+        mapper.addMapping(self.nbr_children, model.fieldIndex("nombre_enfants"))
+        mapper.addMapping(self.place, model.fieldIndex("place"))
+        mapper.addMapping(self.startdate, model.fieldIndex("startdate"))
+        mapper.addMapping(self.enddate, model.fieldIndex("enddate"))
         
         layout = QFormLayout(self)
         
         layout.addRow("Nom du centre:", self.centre)
+        layout.addRow("Lieu:", self.place)
         layout.addRow("Nom du directeur:", self.directeur_nom)
-        layout.addRow("Prénom du directeur:", self.directeur_prenom)
+        layout.addRow("Nombre d'enfants:", self.nbr_children)
+        layout.addRow("Début:", self.startdate)
+        layout.addRow("Fin:", self.enddate)
         
         buttons = QDialogButtonBox(
             QDialogButtonBox.Ok | QDialogButtonBox.Cancel,
