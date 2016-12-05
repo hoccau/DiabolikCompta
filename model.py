@@ -97,17 +97,21 @@ class Model(QSqlQueryModel):
         self.db.setDatabaseName(db_name)
         self.db.open()
         self.query = QSqlQuery()
-        self.pieces_comptables = TableModel(self, self.db)
-        self.pieces_comptables.setTable('pieces_comptables')
-        self.pieces_comptables.relational_mapping(
+
+        #Tables model
+        self.tables = {}
+        self.tables['pieces_comptables'] = TableModel(self, self.db)
+        self.tables['pieces_comptables'].setTable('pieces_comptables')
+        self.tables['pieces_comptables'].relational_mapping(
             ["fournisseurs","id","NOM",1,"Fournisseur"],
             ["type_payement","id","NOM",4,"Moyen de payement"])
-        self.pieces_comptables.setHeaderData(0, Qt.Horizontal, "Identification")
-        self.subdivisions = TableModel(self, self.db)
-        self.subdivisions.setTable('subdivisions')
-        self.subdivisions.relational_mapping(
+        self.tables['pieces_comptables'].setHeaderData(0, Qt.Horizontal, "Identification")
+        self.tables['subdivisions'] = TableModel(self, self.db)
+        self.tables['subdivisions'].setTable('subdivisions')
+        self.tables['subdivisions'].relational_mapping(
             ["codecompta","code","NOM",3,"Catégorie comptable"],
             ["code_analytique","code","NOM",4,"Catégorie analytique"])
+        self.tables['inputs'] = InputsModel(self, self.db)
         self.qt_table_infos = InfosModel(self, self.db)
         self.qt_table_inputs = InputsModel(self, self.db)
         self.globals_datas = GlobalModel()
@@ -144,8 +148,8 @@ class Model(QSqlQueryModel):
             self.refresh_model(table)
         return result
 
-    #def refresh_model(self, table):
-        
+    def refresh_model(self, table):
+        pass    
 
     def get_last_id(self, table):
         query = "SELECT id FROM "+table+" ORDER BY id DESC LIMIT 1"

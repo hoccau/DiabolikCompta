@@ -34,10 +34,6 @@ class MainWindow(QMainWindow):
         addInputAction = self.add_action("Entrée d'argent", self.add_input)
         setInfosAction = self.add_action('Editer les infos du centre', self.set_infos)
         ViewRapportAction = self.add_action('Rapport', self.viewRapport)
-        switch2subdivisionsAction = self.add_action(
-            'Subdivisions', self.switch_view_subdivisions)
-        switch2pieces_comptablesAction = self.add_action(
-            'Pièces comptables', self.switch_view_pieces_comptables)
         exportPdfAction = self.add_action('Exporter un rapport', self.export_pdf)
 
         fileMenu = menubar.addMenu('&Fichier')
@@ -49,8 +45,6 @@ class MainWindow(QMainWindow):
         edit_menu.addAction(setInfosAction)
         view_menu = menubar.addMenu('&Vue')
         view_menu.addAction(ViewRapportAction)
-        view_menu.addAction(switch2subdivisionsAction)
-        view_menu.addAction(switch2pieces_comptablesAction)
         addMenu = menubar.addMenu('&Ajouter')
         addMenu.addAction(addFormAction)
         addMenu.addAction(addFournisseurAction)
@@ -76,11 +70,14 @@ class MainWindow(QMainWindow):
         
         #Tabs with tables
         main_tab_widget = QTabWidget()
-        pieces_comptables_view = self.create_table_view(self.model.pieces_comptables)
-        subdivisions_view = self.create_table_view(self.model.subdivisions)
+        pieces_comptables_view = self.create_table_view(
+            self.model.tables['pieces_comptables'])
+        subdivisions_view = self.create_table_view(self.model.tables['subdivisions'])
+        inputs_view = self.create_table_view(self.model.tables['inputs'])
 
         main_tab_widget.addTab(pieces_comptables_view, "Pièces comptables")
         main_tab_widget.addTab(subdivisions_view, "Subdivisions")
+        main_tab_widget.addTab(inputs_view, "Entrées d'argent")
         self.setCentralWidget(main_tab_widget)
 
         v = QTableView()
@@ -93,12 +90,6 @@ class MainWindow(QMainWindow):
         view.setModel(model)
         view.setItemDelegate(QSqlRelationalDelegate())
         return view
-
-    def switch_view_subdivisions(self):
-        self.model.qt_table_compta.set_subdivisions()
-
-    def switch_view_pieces_comptables(self):
-        self.model.qt_table_compta.set_pieces_comptables()
 
     def add_action(self, name, function_name, shortcut=None):
         action = QAction(name, self)
