@@ -6,9 +6,9 @@ from PyQt5.QtCore import QRegExp, QDate
 from PyQt5.QtGui import QRegExpValidator
 from PyQt5.QtChart import *
 
-class Form(QDialog):
+class PieceComptable(QDialog):
     def __init__(self, parent=None):
-        super(Form, self).__init__(parent)
+        super(PieceComptable, self).__init__(parent)
 
         self.parent = parent
         self.model = parent.model
@@ -314,8 +314,6 @@ class CodeComptaDialog(QDialog):
         result = dialog.exec_()
         return (dialog.name.text(), dialog.code.value(), result == QDialog.Accepted)
 
-        #self.qt_table_compta = QSqlTableModel(self, self.db).setTable('compta')
-
 class InfosCentreDialog(QDialog):
     def __init__(self, parent=None):
         super(InfosCentreDialog, self).__init__(parent)
@@ -365,7 +363,7 @@ class RapportDialog(QDialog):
 
         self.setWindowTitle("Rapport")
         self.parent = parent
-        self.setMinimumSize(700, 500)
+        self.setMinimumSize(1024, 800)
         
         grid = QGridLayout(self)
         totals = parent.model.get_totals_by_payement()
@@ -386,7 +384,6 @@ class RapportDialog(QDialog):
         for k, v in dic.items():
             series.append(k,v)
         chart = QChart()
-        #chart.setTitle("Graphique")
         chart.addSeries(series)
         chartView = QChartView(chart)
         return chartView

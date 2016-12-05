@@ -28,7 +28,7 @@ class MainWindow(QMainWindow):
         exitAction = self.add_action('&Quitter', qApp.quit, 'Ctrl+Q')
         openAction = self.add_action('&Ouvrir', self.open_db, 'Ctrl+O')
         delRowAction = self.add_action('&Supprimer la ligne', self.remove_current_row)
-        addFormAction = self.add_action('&Pièce comptable', self.addDatas)
+        addFormAction = self.add_action('&Pièce comptable', self.add_piece_comptable)
         addFournisseurAction = self.add_action('&Fournisseur', self.addFournisseur)
         addCodeComptaAction = self.add_action('&Code compta', self.addCodeCompta)
         addInputAction = self.add_action("Entrée d'argent", self.add_input)
@@ -81,7 +81,6 @@ class MainWindow(QMainWindow):
         v = QTableView()
         v.setModel(self.model.g_model)
         v.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        #grid.addWidget(v)
         self.right_dock.setWidget(v)
 
     def create_table_view(self, model):
@@ -102,12 +101,19 @@ class MainWindow(QMainWindow):
 
     def remove_current_row(self):
         row = self.pieces_comptables_view.currentIndex().row()
-        #model = self.mainView.currentIndex().model()
-        #row_id = model.index(row, 0).data()
-        print("row to remove:", row)
-        self.model.tables['pieces_comptables'].removeRow(row)
-        self.model.tables['pieces_comptables'].select()
-        #self.model.qt_table_compta.update_table_model()
+        reponse = QMessageBox.question(
+            None,
+            'Sûr(e)?',
+            'Vous êtes sur le point de supprimer définitivement une\
+            pièce comptable ainsi que toutes les subdivisions associées.\
+            Êtes-vous sûr(e) ?',
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No
+            )
+        if reponse == QMessageBox.Yes:
+            self.model.tables['pieces_comptables'].removeRow(row)
+            self.model.tables['pieces_comptables'].select()
+            self.model.tables['subdivisions'].select()
 
     def open_db(self):
         file_name = QFileDialog.getOpenFileName(self, 'Open File')
@@ -134,6 +140,7 @@ class MainWindow(QMainWindow):
             if reponse == QMessageBox.Yes:
                 db_name = self.input_db_name()
                 self.model.create_db(db_name)
+                self.model.connect_db(db_name)
                 self.set_infos()
                 return True
 
@@ -166,9 +173,9 @@ class MainWindow(QMainWindow):
             import export
             export.create_pdf(filename, model=self.model)
 
-    def addDatas(self):
-        self.form = Form(self)
-        self.form.show()
+    def add_piece_comptable(self):
+        self.piece_comptable = PieceComptable(self)
+        self.piece_comptable.show()
 
     def addFournisseur(self):
         name, ok = QInputDialog.getText(self, 'Fournisseur',
@@ -189,9 +196,6 @@ class MainWindow(QMainWindow):
             response = self.model.add(datas, 'codecompta')
             if response == "UNIQUE constraint failed: codecompta.CODE":
                 QMessageBox.warning(self, "Erreur", "Ce code existe déjà")
-            #else:
-                #self.form.refresh_codeCompta()
-                #self.model.update_table_model()
 
     def add_input(self):
         res = AddInputDialog(self)
