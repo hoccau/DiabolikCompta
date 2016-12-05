@@ -97,7 +97,17 @@ class Model(QSqlQueryModel):
         self.db.setDatabaseName(db_name)
         self.db.open()
         self.query = QSqlQuery()
-        self.qt_table_compta = TableModel(self, self.db)
+        self.pieces_comptables = TableModel(self, self.db)
+        self.pieces_comptables.setTable('pieces_comptables')
+        self.pieces_comptables.relational_mapping(
+            ["fournisseurs","id","NOM",1,"Fournisseur"],
+            ["type_payement","id","NOM",4,"Moyen de payement"])
+        self.pieces_comptables.setHeaderData(0, Qt.Horizontal, "Identification")
+        self.subdivisions = TableModel(self, self.db)
+        self.subdivisions.setTable('subdivisions')
+        self.subdivisions.relational_mapping(
+            ["codecompta","code","NOM",3,"Catégorie comptable"],
+            ["code_analytique","code","NOM",4,"Catégorie analytique"])
         self.qt_table_infos = InfosModel(self, self.db)
         self.qt_table_inputs = InputsModel(self, self.db)
         self.globals_datas = GlobalModel()
@@ -130,7 +140,12 @@ class Model(QSqlQueryModel):
         values = ', '.join(values)
         query = "INSERT INTO "+table+" ("+col_title+') VALUES('+values+')'
         result = self.exec_(query)
+        if result == True:
+            self.refresh_model(table)
         return result
+
+    #def refresh_model(self, table):
+        
 
     def get_last_id(self, table):
         query = "SELECT id FROM "+table+" ORDER BY id DESC LIMIT 1"
@@ -281,21 +296,6 @@ class GSqlModel(QSqlQueryModel):
 class TableModel(QSqlRelationalTableModel):
     def __init__(self, parent, db):
         super(TableModel, self).__init__(parent, db)
-
-        self.set_pieces_comptables()
-    
-    def set_pieces_comptables(self):
-        self.setTable('pieces_comptables')
-        self.relational_mapping(
-            ["fournisseurs","id","NOM",1,"Fournisseur"],
-            ["type_payement","id","NOM",4,"Moyen de payement"])
-        self.setHeaderData(0, Qt.Horizontal, "Identification")
-
-    def set_subdivisions(self):
-        self.setTable('subdivisions')
-        self.relational_mapping(
-            ["codecompta","code","NOM",3,"Catégorie comptable"],
-            ["code_analytique","code","NOM",4,"Catégorie analytique"])
 
     def relational_mapping(self, *args):
         """

@@ -60,7 +60,7 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage('Ready')
         self.model = Model(self)
 
-        top_dock = QDockWidget('Infos!', self)
+        top_dock = QDockWidget('Informations Générales', self)
         top_dock.setFeatures(QDockWidget.NoDockWidgetFeatures)
         grid = QGridLayout()
         widget = QWidget()
@@ -74,17 +74,25 @@ class MainWindow(QMainWindow):
         
         self.retrieve_db()
         
-        self.set_table_main_view(self.model.qt_table_compta)
+        #Tabs with tables
+        main_tab_widget = QTabWidget()
+        pieces_comptables_view = self.create_table_view(self.model.pieces_comptables)
+        subdivisions_view = self.create_table_view(self.model.subdivisions)
+
+        main_tab_widget.addTab(pieces_comptables_view, "Pièces comptables")
+        main_tab_widget.addTab(subdivisions_view, "Subdivisions")
+        self.setCentralWidget(main_tab_widget)
+
         v = QTableView()
         v.setModel(self.model.g_model)
         v.setEditTriggers(QAbstractItemView.NoEditTriggers)
         grid.addWidget(v)
 
-    def set_table_main_view(self, model):
-        self.mainView = QTableView(self)
-        self.mainView.setModel(model)
-        self.mainView.setItemDelegate(QSqlRelationalDelegate())
-        self.setCentralWidget(self.mainView)
+    def create_table_view(self, model):
+        view = QTableView()
+        view.setModel(model)
+        view.setItemDelegate(QSqlRelationalDelegate())
+        return view
 
     def switch_view_subdivisions(self):
         self.model.qt_table_compta.set_subdivisions()
