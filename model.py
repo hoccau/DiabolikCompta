@@ -163,8 +163,11 @@ class Model(QSqlQueryModel):
             return self.query.value(0)
 
     def get_price_by_child(self):
-        return self.get_general_totals()\
-        / float(self.get_infos()['nombre_enfants'])
+        try:
+            nbr_enfants = float(self.get_infos()['nombre_enfants'])
+        except ValueError:
+            return 0
+        return self.get_general_totals() / nbr_enfants
 
     def get_days(self):
         self.exec_("SELECT startdate, enddate FROM infos")
@@ -174,7 +177,11 @@ class Model(QSqlQueryModel):
         return start.daysTo(end)
 
     def get_price_by_child_by_day(self):
-        return self.get_price_by_child() / float(self.get_days())
+        nbr_days = self.get_days()
+        if nbr_days != 0:
+            return self.get_price_by_child() / float(self.get_days())
+        else:
+            return 0
 
     def get_totals_by_payement(self):
         query = "SELECT type_payement.NOM, sum(total) FROM pieces_comptables\
