@@ -12,6 +12,7 @@ from PyQt5.QtGui import QIcon
 from model import Model
 from views import *
 from PyQt5.QtSql import QSqlRelationalDelegate
+from PyQt5.QtCore import Qt
 
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
@@ -57,13 +58,27 @@ class MainWindow(QMainWindow):
         addMenu.addAction(addInputAction)
 
         self.statusBar().showMessage('Ready')
+        self.model = Model(self)
+
+        top_dock = QDockWidget('Infos!', self)
+        top_dock.setFeatures(QDockWidget.NoDockWidgetFeatures)
+        grid = QGridLayout()
+        widget = QWidget()
+        widget.setLayout(grid)
+
+        top_dock.setWidget(widget)
+        self.addDockWidget(Qt.RightDockWidgetArea, top_dock)
+
         self.setMinimumSize(850,300)
         self.show()
         
-        self.model = Model(self)
         self.retrieve_db()
         
         self.set_table_main_view(self.model.qt_table_compta)
+        v = QTableView()
+        v.setModel(self.model.g_model)
+        v.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        grid.addWidget(v)
 
     def set_table_main_view(self, model):
         self.mainView = QTableView(self)
@@ -158,7 +173,7 @@ class MainWindow(QMainWindow):
         name, ok = QInputDialog.getText(self, 'Fournisseur',
             'Nom du fournisseur:')
         if ok and name != "":
-            res = self.model.add_fournisseur(name)
+            res = self.model.add({'nom':name}, 'fournisseurs')
             if res == True:
                 return True
             elif res == "UNIQUE constraint failed: fournisseurs.NOM":
@@ -168,14 +183,14 @@ class MainWindow(QMainWindow):
 
     def addCodeCompta(self):
         name, code, ok = CodeComptaDialog.getCode()
-        print(name, code, ok)
         if ok and name != "":
-            response = self.model.add_code_compta(code, name)
+            datas = {'code':code, 'nom':name}
+            response = self.model.add(datas, 'codecompta')
             if response == "UNIQUE constraint failed: codecompta.CODE":
                 QMessageBox.warning(self, "Erreur", "Ce code existe déjà")
-            else:
-                self.form.refresh_codeCompta()
-                self.model.update_table_model()
+            #else:
+                #self.form.refresh_codeCompta()
+                #self.model.update_table_model()
 
     def add_input(self):
         res = AddInputDialog(self)

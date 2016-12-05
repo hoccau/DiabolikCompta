@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*- 
 
 from PyQt5.QtSql import QSqlQueryModel, QSqlDatabase, QSqlQuery, QSqlRelationalTableModel, QSqlRelation, QSqlTableModel
-from PyQt5.QtCore import Qt, QDate
+from PyQt5.QtCore import Qt, QDate, QAbstractItemModel
 
 DEBUG_SQL = True
 
@@ -99,6 +99,9 @@ class Model(QSqlQueryModel):
         self.query = QSqlQuery()
         self.qt_table_compta = TableModel(self, self.db)
         self.qt_table_infos = InfosModel(self, self.db)
+        self.qt_table_inputs = InputsModel(self, self.db)
+        self.globals_datas = GlobalModel()
+        self.g_model = GSqlModel()
 
     def get_fournisseurs(self):
         self.exec_("SELECT NOM, ID FROM fournisseurs")
@@ -116,38 +119,6 @@ class Model(QSqlQueryModel):
         self.query.exec_("SELECT NOM, ID FROM type_payement")
         return self.query2dic()
 
-    def add_fournisseur(self, name):
-        req = self.exec_("insert into fournisseurs (nom) values('"+name+"')")
-        return req
-
-    def add_code_compta(self, code, name):
-        query = "INSERT INTO codecompta (CODE, NOM) VALUES ("\
-        +str(code)+",'"+name+"')"
-        req = self.exec_(query)
-        return req
-
-    def add_piece_comptable(self, datas):
-        query = "INSERT INTO pieces_comptables (id, Fournisseur_id,  Date,\
-        Total, TypePayement_id) VALUES ("\
-        +str(datas["id"])+","\
-        +str(datas["fournisseur_id"])+",'"\
-        +str(datas["date"])+"',"\
-        +datas["total"]+","\
-        +str(datas["typePayement_id"])\
-        +")"
-        self.exec_(query)
-
-    def add_subdivision(self, datas):
-        query = "INSERT INTO subdivisions (\
-        piece_comptable_id, designation, code_compta_id, code_analytique_id, prix) VALUES("\
-        +str(datas['piece_comptable_id'])+", '"\
-        +str(datas['designation'])+"',"\
-        +str(datas['code_compta_id'])+','\
-        +str(datas['code_analytique_id'])+','\
-        +str(datas['prix'])+')'
-        q = self.exec_(query)
-        return q
-
     def add(self, datas, table):
         col_title = ', '.join([str(i) for i in list(datas.keys())])
         values = []
@@ -158,7 +129,8 @@ class Model(QSqlQueryModel):
                 values.append(str(value))
         values = ', '.join(values)
         query = "INSERT INTO "+table+" ("+col_title+') VALUES('+values+')'
-        self.exec_(query)
+        result = self.exec_(query)
+        return result
 
     def get_last_id(self, table):
         query = "SELECT id FROM "+table+" ORDER BY id DESC LIMIT 1"
@@ -259,12 +231,52 @@ class Model(QSqlQueryModel):
                 print(self.query.lastError().databaseText())
         return req
 
+    def queryChange(self):
+        print("Query Changed!!!!!!!!!!!")
+
 class InfosModel(QSqlTableModel):
     def __init__(self, parent, db):
         super(InfosModel, self).__init__(parent, db)
 
         self.setTable("infos")
         self.select()
+
+class InputsModel(QSqlTableModel):
+    def __init__(self, parent, db):
+        super(InputsModel, self).__init__(parent, db)
+        self.setTable("inputs")
+        self.select()
+"""
+class InputsOuputsModel(QAbstractProxyModel):
+    def __init__(self, parent, db):
+        super(InputsOutputsModel, self).__init__(parent, db)
+        
+    def mapFromSource(self):
+        return None
+"""
+# test... s'instancie avec succès :p
+class GlobalModel(QAbstractItemModel):
+    def __init__(self):
+        super(GlobalModel).__init__()
+    def index(self, row, column):
+        return self.createIndex(row, column)
+    def parent(self):
+        return QModelIndex()
+    def rowCount(self):
+        return 0
+    def columnCount(self):
+        return 0
+    def data(self):
+        return "Ma donnée!!!"
+
+class GSqlModel(QSqlQueryModel):
+    def __init__(self):
+        super(GSqlModel, self).__init__()
+        self.query = "SELECT sum(montant) from inputs"
+        self.setHeaderData(0, Qt.Horizontal, "Argent disponible")
+        self.refresh()
+    def refresh(self):
+        self.setQuery(self.query)
 
 class TableModel(QSqlRelationalTableModel):
     def __init__(self, parent, db):

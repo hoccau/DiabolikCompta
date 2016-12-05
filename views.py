@@ -145,7 +145,7 @@ class Form(QDialog):
         record["date"] = self.date.selectedDate().toString('yyyy-MM-dd')
         record["total"] = self.price.text()
         record["typePayement_id"] = p_id
-        self.model.add_piece_comptable(record)
+        self.model.add(record, 'pieces_comptables')
         for subdivision in self.subdivisions:
             subdivision.submit_datas()
         self.model.qt_table_compta.set_pieces_comptables()
@@ -232,7 +232,7 @@ class SubdivisionView():
             datas["code_analytique_id"] = CA_id
             print(self.prix.text())
             datas["prix"] = self.prix.text()
-            if self.parent.model.add_subdivision(datas):
+            if self.parent.model.add(datas,'subdivisions'):
                 print("subdivision ", self, "submited")
             else:
                 QMessageBox.warning(self.parent, "Erreur", "Erreur de requête")
@@ -281,6 +281,7 @@ class AddInputDialog(QDialog):
             'comment':self.note.toPlainText()
             }
         self.model.add(dic,'inputs')
+        self.model.g_model.refresh()
         self.accept()
 
 class CodeComptaDialog(QDialog):
