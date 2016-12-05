@@ -14,6 +14,7 @@ class Model(QSqlQueryModel):
 
     def create_db(self, db_name):
         self.connect_db(db_name)
+        self.exec_("PRAGMA foreign_keys = ON")
         self.exec_("CREATE TABLE infos(\
         centre varchar(20),\
         directeur_nom varchar(20),\
@@ -71,8 +72,8 @@ class Model(QSqlQueryModel):
         Date varchar(10),\
         total real,\
         TypePayement_id int NOT NULL,\
-        FOREIGN KEY (Fournisseur_id) REFERENCES fournisseurs(id),\
-        FOREIGN KEY (TypePayement_id) REFERENCES type_payement(id)\
+        FOREIGN KEY (Fournisseur_id) REFERENCES fournisseurs(id) ON DELETE NO ACTION,\
+        FOREIGN KEY (TypePayement_id) REFERENCES type_payement(id) ON DELETE NO ACTION\
         )")
         self.exec_("CREATE TABLE subdivisions(\
         id INTEGER PRIMARY KEY,\
@@ -81,12 +82,14 @@ class Model(QSqlQueryModel):
         code_compta_id INTEGER NOT NULL,\
         code_analytique_id INTEGER,\
         prix REAL,\
-        FOREIGN KEY (piece_comptable_id) REFERENCES pieces_comptables(id),\
-        FOREIGN KEY (code_compta_id) REFERENCES codecompta(id),\
-        FOREIGN KEY (code_analytique_id) REFERENCES code_analytique(id)\
+        FOREIGN KEY (piece_comptable_id) REFERENCES pieces_comptables(id)\
+        ON DELETE CASCADE,\
+        FOREIGN KEY (code_compta_id) REFERENCES codecompta(code) ON DELETE NO ACTION,\
+        FOREIGN KEY (code_analytique_id) REFERENCES code_analytique(code) ON DELETE NO ACTION\
         )")
         self.exec_("CREATE UNIQUE INDEX idx_CODE ON codecompta (CODE)")
-        self.exec_("CREATE UNIQUE INDEX idx_NOM ON fournisseurs (NOM)")
+        self.exec_("CREATE UNIQUE INDEX idx_NOM_FO ON fournisseurs (NOM)")
+        self.exec_("CREATE UNIQUE INDEX idx_CODE_AN ON code_analytique (CODE)")
         self.exec_("CREATE TABLE inputs(\
         id INTEGER PRIMARY KEY,\
         date varchar(10),\
@@ -97,6 +100,7 @@ class Model(QSqlQueryModel):
         self.db.setDatabaseName(db_name)
         self.db.open()
         self.query = QSqlQuery()
+        self.exec_("PRAGMA foreign_keys = ON")
 
         #Tables model
         self.tables = {}
@@ -149,7 +153,11 @@ class Model(QSqlQueryModel):
         return result
 
     def refresh_model(self, table):
-        pass    
+        if table in self.tables.keys():
+            self.tables[table].select()
+            print('Table '+table+' refreshed.')
+        else:
+            print('Table '+table+' is not present in self.tables models')
 
     def get_last_id(self, table):
         query = "SELECT id FROM "+table+" ORDER BY id DESC LIMIT 1"
@@ -317,4 +325,5 @@ class TableModel(QSqlRelationalTableModel):
             self.setRelation(relation[3], rel)
             self.setHeaderData(relation[3], Qt.Horizontal, relation[4])
         self.select()
+
 

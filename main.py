@@ -54,36 +54,35 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage('Ready')
         self.model = Model(self)
 
-        top_dock = QDockWidget('Informations Générales', self)
-        top_dock.setFeatures(QDockWidget.NoDockWidgetFeatures)
-        grid = QGridLayout()
-        widget = QWidget()
-        widget.setLayout(grid)
+        self.right_dock = QDockWidget('Informations Générales', self)
+        self.right_dock.setFeatures(QDockWidget.NoDockWidgetFeatures)
 
-        top_dock.setWidget(widget)
-        self.addDockWidget(Qt.RightDockWidgetArea, top_dock)
+        self.addDockWidget(Qt.RightDockWidgetArea, self.right_dock)
 
-        self.setMinimumSize(850,300)
+        self.setMinimumSize(1024,600)
         self.show()
         
-        self.retrieve_db()
+        db_found = self.retrieve_db()
+        if db_found:
+            self.create_tables_views()
         
-        #Tabs with tables
+    def create_tables_views(self):
         main_tab_widget = QTabWidget()
-        pieces_comptables_view = self.create_table_view(
+        self.pieces_comptables_view = self.create_table_view(
             self.model.tables['pieces_comptables'])
-        subdivisions_view = self.create_table_view(self.model.tables['subdivisions'])
-        inputs_view = self.create_table_view(self.model.tables['inputs'])
+        self.subdivisions_view = self.create_table_view(self.model.tables['subdivisions'])
+        self.inputs_view = self.create_table_view(self.model.tables['inputs'])
 
-        main_tab_widget.addTab(pieces_comptables_view, "Pièces comptables")
-        main_tab_widget.addTab(subdivisions_view, "Subdivisions")
-        main_tab_widget.addTab(inputs_view, "Entrées d'argent")
+        main_tab_widget.addTab(self.pieces_comptables_view, "Pièces comptables")
+        main_tab_widget.addTab(self.subdivisions_view, "Subdivisions")
+        main_tab_widget.addTab(self.inputs_view, "Entrées d'argent")
         self.setCentralWidget(main_tab_widget)
 
         v = QTableView()
         v.setModel(self.model.g_model)
         v.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        grid.addWidget(v)
+        #grid.addWidget(v)
+        self.right_dock.setWidget(v)
 
     def create_table_view(self, model):
         view = QTableView()
@@ -102,11 +101,12 @@ class MainWindow(QMainWindow):
         RapportDialog(self)
 
     def remove_current_row(self):
-        row = self.mainView.currentIndex().row()
-        model = self.mainView.currentIndex().model()
-        row_id = model.index(row, 0).data()
+        row = self.pieces_comptables_view.currentIndex().row()
+        #model = self.mainView.currentIndex().model()
+        #row_id = model.index(row, 0).data()
         print("row to remove:", row)
-        #self.model.qt_table_compta.removeRow(row)
+        self.model.tables['pieces_comptables'].removeRow(row)
+        self.model.tables['pieces_comptables'].select()
         #self.model.qt_table_compta.update_table_model()
 
     def open_db(self):
@@ -121,6 +121,7 @@ class MainWindow(QMainWindow):
         if len(files) == 1:
             QMessageBox.information(self, "Base trouvée","Base de donnée : "+files[0])
             self.model.connect_db(files[0])
+            return True
         
         elif len(files) == 0:
             reponse = QMessageBox.question(
@@ -134,9 +135,10 @@ class MainWindow(QMainWindow):
                 db_name = self.input_db_name()
                 self.model.create_db(db_name)
                 self.set_infos()
+                return True
 
             if reponse == QMessageBox.No:
-                return None
+                return False
 
         elif len(files) > 1:
             #QMessageBox.critical(None, "Plusieurs bases trouvées", "Plusieurs bases de données trouvées. Je ne sais que faire...")

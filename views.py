@@ -148,7 +148,7 @@ class Form(QDialog):
         self.model.add(record, 'pieces_comptables')
         for subdivision in self.subdivisions:
             subdivision.submit_datas()
-        self.model.qt_table_compta.set_pieces_comptables()
+        self.model.tables['pieces_comptables'].select()
         self.close()
 
     def refresh_fournisseurs(self):
