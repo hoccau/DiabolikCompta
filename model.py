@@ -118,7 +118,6 @@ class Model(QSqlQueryModel):
         self.tables['inputs'] = InputsModel(self, self.db)
         self.qt_table_infos = InfosModel(self, self.db)
         self.qt_table_inputs = InputsModel(self, self.db)
-        self.globals_datas = GlobalModel()
 
         self.general_results = {
             'chiffre_affaire':GeneralResultModel(
@@ -171,7 +170,8 @@ class Model(QSqlQueryModel):
         else:
             print('Table '+table+' is not present in self.tables models')
         if table in ['inputs', 'subdivisions', 'pieces_comptables']:
-            pass
+            for m in self.general_results.values():
+                m.select()
 
     def get_last_id(self, table):
         query = "SELECT id FROM "+table+" ORDER BY id DESC LIMIT 1"
@@ -298,6 +298,8 @@ class GeneralResultModel():
         self.query = query
         self.model.setQuery(self.query)
         self.model.setHeaderData(0, Qt.Horizontal, label)
+    def select(self):
+        self.model.setQuery(self.query)
 
 class TableModel(QSqlRelationalTableModel):
     def __init__(self, parent, db):

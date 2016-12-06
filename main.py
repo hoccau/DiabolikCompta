@@ -94,6 +94,7 @@ class MainWindow(QMainWindow):
         view = QTableView()
         view.setModel(model)
         view.setItemDelegate(QSqlRelationalDelegate())
+        view.resizeColumnsToContents()
         return view
 
     def add_action(self, name, function_name, shortcut=None):

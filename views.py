@@ -3,7 +3,7 @@
 
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QRegExp, QDate
-from PyQt5.QtGui import QRegExpValidator
+from PyQt5.QtGui import QRegExpValidator, QIntValidator 
 from PyQt5.QtChart import *
 
 class PieceComptable(QDialog):
@@ -257,7 +257,7 @@ class AddInputDialog(QDialog):
         regexp = QRegExp('\d[\d\.]+')
         self.montant.setValidator(QRegExpValidator(regexp))
         self.montant.setPlaceholderText("Montant")
-        self.date = QDateEdit()
+        self.date = QDateEdit(QDate.currentDate())
         self.note = QTextEdit()
         buttons = QDialogButtonBox(
             QDialogButtonBox.Ok | QDialogButtonBox.Cancel,
@@ -274,15 +274,17 @@ class AddInputDialog(QDialog):
         self.exec_()
 
     def submit(self):
-        date = QDate.fromString(self.date.text(),'dd/MM/yyyy')
-        dic = {
-            'date':date.toString('yyyy-MM-dd'),
-            'montant':float(self.montant.text()),
-            'comment':self.note.toPlainText()
-            }
-        self.model.add(dic,'inputs')
-        #self.model.g_model.refresh()
-        self.accept()
+        if self.montant.text() == '':
+            QMessageBox.warning(None, "Erreur", "Il faut entrer un montant")
+        else:
+            date = QDate.fromString(self.date.text(),'dd/MM/yyyy')
+            dic = {
+                'date':date.toString('yyyy-MM-dd'),
+                'montant':float(self.montant.text()),
+                'comment':self.note.toPlainText()
+                }
+            self.model.add(dic,'inputs')
+            self.accept()
 
 class CodeComptaDialog(QDialog):
     def __init__(self, parent=None):
@@ -326,9 +328,12 @@ class InfosCentreDialog(QDialog):
         self.centre = QLineEdit()
         self.directeur_nom = QLineEdit()
         self.nbr_children = QLineEdit()
+        self.nbr_children.setValidator(QIntValidator())
         self.place = QLineEdit()
         self.startdate = QDateEdit()
+        self.startdate.setDate(QDate.currentDate())
         self.enddate = QDateEdit()
+        self.enddate.setDate(QDate.currentDate())
 
         mapper.addMapping(self.centre, model.fieldIndex("centre"))
         mapper.addMapping(self.directeur_nom, model.fieldIndex("directeur_nom"))
@@ -341,7 +346,7 @@ class InfosCentreDialog(QDialog):
         
         layout.addRow("Nom du centre:", self.centre)
         layout.addRow("Lieu:", self.place)
-        layout.addRow("Nom du directeur:", self.directeur_nom)
+        layout.addRow("Directeur:", self.directeur_nom)
         layout.addRow("Nombre d'enfants:", self.nbr_children)
         layout.addRow("Début:", self.startdate)
         layout.addRow("Fin:", self.enddate)
