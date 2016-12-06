@@ -78,10 +78,17 @@ class MainWindow(QMainWindow):
         main_tab_widget.addTab(self.inputs_view, "Entrées d'argent")
         self.setCentralWidget(main_tab_widget)
 
-        v = QTableView()
-        v.setModel(self.model.g_model)
-        v.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        self.right_dock.setWidget(v)
+        layout = QVBoxLayout()
+        for k, g_model in self.model.general_results.items():
+            table = QTableView()
+            table.setModel(g_model.model)
+            table.resizeColumnsToContents()
+            table.verticalHeader().hide()
+            table.setEditTriggers(QAbstractItemView.NoEditTriggers)
+            layout.addWidget(table)
+        widget = QWidget()
+        widget.setLayout(layout)
+        self.right_dock.setWidget(widget)
 
     def create_table_view(self, model):
         view = QTableView()

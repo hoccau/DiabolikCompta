@@ -281,7 +281,7 @@ class AddInputDialog(QDialog):
             'comment':self.note.toPlainText()
             }
         self.model.add(dic,'inputs')
-        self.model.g_model.refresh()
+        #self.model.g_model.refresh()
         self.accept()
 
 class CodeComptaDialog(QDialog):

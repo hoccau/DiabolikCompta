@@ -119,7 +119,19 @@ class Model(QSqlQueryModel):
         self.qt_table_infos = InfosModel(self, self.db)
         self.qt_table_inputs = InputsModel(self, self.db)
         self.globals_datas = GlobalModel()
-        self.g_model = GSqlModel()
+
+        self.general_results = {
+            'chiffre_affaire':GeneralResultModel(
+                'SELECT sum(montant) FROM inputs',
+                'Total Argent Reçu'),
+            'Dépenses':GeneralResultModel(
+                'SELECT sum(prix) FROM subdivisions',
+                'Total dépenses'),
+            'Argent_disponible':GeneralResultModel(
+                'SELECT (SELECT sum(inputs.montant) from inputs)\
+                - (SELECT sum(subdivisions.prix) FROM subdivisions)',
+                'Argent Disponible')
+                }
 
     def get_fournisseurs(self):
         self.exec_("SELECT NOM, ID FROM fournisseurs")
@@ -158,6 +170,8 @@ class Model(QSqlQueryModel):
             print('Table '+table+' refreshed.')
         else:
             print('Table '+table+' is not present in self.tables models')
+        if table in ['inputs', 'subdivisions', 'pieces_comptables']:
+            pass
 
     def get_last_id(self, table):
         query = "SELECT id FROM "+table+" ORDER BY id DESC LIMIT 1"
@@ -265,9 +279,6 @@ class Model(QSqlQueryModel):
                 print(self.query.lastError().databaseText())
         return req
 
-    def queryChange(self):
-        print("Query Changed!!!!!!!!!!!")
-
 class InfosModel(QSqlTableModel):
     def __init__(self, parent, db):
         super(InfosModel, self).__init__(parent, db)
@@ -280,37 +291,13 @@ class InputsModel(QSqlTableModel):
         super(InputsModel, self).__init__(parent, db)
         self.setTable("inputs")
         self.select()
-"""
-class InputsOuputsModel(QAbstractProxyModel):
-    def __init__(self, parent, db):
-        super(InputsOutputsModel, self).__init__(parent, db)
-        
-    def mapFromSource(self):
-        return None
-"""
-# test... s'instancie avec succès :p
-class GlobalModel(QAbstractItemModel):
-    def __init__(self):
-        super(GlobalModel).__init__()
-    def index(self, row, column):
-        return self.createIndex(row, column)
-    def parent(self):
-        return QModelIndex()
-    def rowCount(self):
-        return 0
-    def columnCount(self):
-        return 0
-    def data(self):
-        return "Ma donnée!!!"
 
-class GSqlModel(QSqlQueryModel):
-    def __init__(self):
-        super(GSqlModel, self).__init__()
-        self.query = "SELECT sum(montant) from inputs"
-        self.setHeaderData(0, Qt.Horizontal, "Argent disponible")
-        self.refresh()
-    def refresh(self):
-        self.setQuery(self.query)
+class GeneralResultModel():
+    def __init__(self, query, label):
+        self.model = QSqlQueryModel()
+        self.query = query
+        self.model.setQuery(self.query)
+        self.model.setHeaderData(0, Qt.Horizontal, label)
 
 class TableModel(QSqlRelationalTableModel):
     def __init__(self, parent, db):
