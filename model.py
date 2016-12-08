@@ -56,9 +56,9 @@ class Model(QSqlQueryModel):
         id integer PRIMARY KEY,\
         NOM varchar(20)\
         )")
-        self.exec_("INSERT INTO type_payement (NOM) VALUES ('Chèque')")
-        self.exec_("INSERT INTO type_payement (NOM) VALUES ('Espèces')")
-        self.exec_("INSERT INTO type_payement (NOM) VALUES ('Carte Banquaire')")
+        moyens_de_payement = ['Chèque','Espèces','Carte Banquaire','Autre']
+        for moyen in moyens_de_payement:
+            self.exec_("INSERT INTO type_payement (NOM) VALUES ('"+moyen+"')")
         self.exec_("CREATE TABLE code_analytique (\
         code INTEGER PRIMARY KEY,\
         nom VARCHAR(20))")
@@ -182,7 +182,10 @@ class Model(QSqlQueryModel):
     def get_general_totals(self):
         self.exec_('SELECT sum(total) FROM pieces_comptables')
         while self.query.next():
-            return self.query.value(0)
+            if self.query.value(0) == '' :
+                return 0
+            else:
+                return self.query.value(0)
 
     def get_price_by_child(self):
         try:

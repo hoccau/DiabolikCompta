@@ -12,7 +12,7 @@ from PyQt5.QtGui import QIcon
 from model import Model
 from views import *
 from PyQt5.QtSql import QSqlRelationalDelegate
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QTranslator, QLocale, QLibraryInfo
 
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
@@ -212,5 +212,9 @@ if __name__ == '__main__':
     import sys, os
     
     app = QApplication(sys.argv)
+    translator = QTranslator()
+    translator.load('qt_' + QLocale.system().name(), 
+        QLibraryInfo.location(QLibraryInfo.TranslationsPath))
+    app.installTranslator(translator)
     main_window = MainWindow()
     sys.exit(app.exec_())

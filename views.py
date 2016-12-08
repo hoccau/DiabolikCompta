@@ -402,3 +402,10 @@ class RapportDialog(QDialog):
         box1.setLayout(layout)
         return box1
 
+class DateDelegate(QItemDelegate):
+    def __init__(self, parent):
+        super(DateDelegate).__init__(parent)
+
+    def displayText(self, value):
+        date = QDate.fromString(value, "yyyy-MM-dd")
+        return date.toString("dd/MM/yyyy")
