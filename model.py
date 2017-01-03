@@ -12,7 +12,7 @@ class Model(QSqlQueryModel):
 
         self.db = QSqlDatabase.addDatabase('QSQLITE')
 
-    def create_db(self, db_name):
+    def create_db(self, db_name, code_centre):
         self.connect_db(db_name)
         self.exec_("PRAGMA foreign_keys = ON")
         self.exec_("CREATE TABLE infos(\
@@ -32,9 +32,10 @@ class Model(QSqlQueryModel):
         )")
         self.exec_("CREATE TABLE codecompta(\
         CODE int PRIMARY KEY,\
-        NOM varchar(20)\
+        NOM varchar(20),\
+        code_analytique_id int\
         )")
-        codes_compta = [
+        codes_compta_centre = [
             "60620, 'Produits entretien'",
             "60630, 'Petit équipement petit matériel'",
             "60640, 'Fournitures administratives'",
@@ -50,8 +51,27 @@ class Model(QSqlQueryModel):
             "626, 'Postes & Télécom'",
             "606510, 'Frais médicaux remboursables'"
             ]
-        for code in codes_compta:
-            self.exec_("INSERT INTO codecompta (code, nom) VALUES ("+code+")")
+        codes_compta_vehicules = [
+            "606161, 'Carburant Master'",
+            "606162, 'Carburant Crafter'",
+            "606163, 'Carburant Trafic'",
+            "606164, 'Carburant Vito'",
+            "606165, 'Carburant Caravel'",
+            "606166, 'Carburant Transporter'",
+            "615221, 'Entretient/réparations Master'",
+            "615222, 'Entretient/réparations Crafter'",
+            "615223, 'Entretient/réparations Trafic'",
+            "615224, 'Entretient/réparations Vito'",
+            "615225, 'Entretient/réparations Caravel'",
+            "615226, 'Entretient/réparations Transporter'",
+            ]
+        for code in codes_compta_centre:
+            self.exec_("INSERT INTO codecompta (code, nom, code_analytique_id)\
+            VALUES ("+code+", "+str(code_centre)+")")
+        for code in codes_compta_centre:
+            self.exec_("INSERT INTO codecompta (code, nom, code_analytique_id)\
+            VALUES ("+code+", 600)")
+
         self.exec_("CREATE TABLE type_payement (\
         id integer PRIMARY KEY,\
         NOM varchar(20)\
@@ -63,7 +83,7 @@ class Model(QSqlQueryModel):
         code INTEGER PRIMARY KEY,\
         nom VARCHAR(20))")
         self.exec_("INSERT INTO code_analytique (code, nom) VALUES\
-        (200, 'Centre')")
+        (str(code_centre), 'Centre')")
         self.exec_("INSERT INTO code_analytique (code, nom) VALUES\
         (600, 'Véhicule')")
         self.exec_("CREATE TABLE pieces_comptables(\

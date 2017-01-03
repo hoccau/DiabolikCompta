@@ -12,7 +12,8 @@ from PyQt5.QtGui import QIcon
 from model import Model
 from views import *
 from PyQt5.QtSql import QSqlRelationalDelegate
-from PyQt5.QtCore import Qt, QTranslator, QLocale, QLibraryInfo
+from PyQt5.QtCore import Qt, QTranslator, QLocale, QLibraryInfo, QThread
+import time
 
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
@@ -146,11 +147,25 @@ class MainWindow(QMainWindow):
                 QMessageBox.No
                 )
             if reponse == QMessageBox.Yes:
-                db_name = self.input_db_name()
-                self.model.create_db(db_name)
-                self.model.connect_db(db_name)
-                self.set_infos()
-                return True
+                db_name, code = self.input_db_name()
+                print(db_name, code)
+                if db_name == None or code == None:
+                    return False
+                else:
+                    self.t = Thread(self.model.create_db, db_name, code)
+                    self.t.start()
+                    progress = QProgressDialog(
+                        "Création de la base de données",
+                        "Annuler",
+                        0,
+                        10,
+                        self)
+                    progress.show()
+
+                    #self.model.create_db(db_name, code)
+                    #self.model.connect_db(db_name)
+                    #self.set_infos()
+                    #return True
 
             if reponse == QMessageBox.No:
                 return False
@@ -162,12 +177,13 @@ class MainWindow(QMainWindow):
                 combo.addItem(db_name)
 
     def input_db_name(self):
-        name, ok = QInputDialog.getText(self, 'Input Dialog', 
-            'Entrez le nom de la base:')
-        if ok and name != "":
-            if name.split('.')[-1] != 'db':
-                name = name + '.db'
-            return name
+        code, ok = QInputDialog.getInt(self, 'Code centre',
+            'Entrez le code de votre centre:')
+        if ok and code != '':
+            name = 'centre' + str(code) + '.db'
+            return name, code
+        else:
+            return None, None
 
     def set_infos(self):
         InfosCentreDialog(self)
@@ -207,6 +223,15 @@ class MainWindow(QMainWindow):
 
     def add_input(self):
         res = AddInputDialog(self)
+
+class Thread(QThread):
+    def __init__(self, function, *args):
+        super(Thread, self).__init__()
+        self.function = function
+        self.args = args
+    def run(self):
+        self.function(*self.args)
+        self.finished.emit()
 
 if __name__ == '__main__':
     import sys, os
