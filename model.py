@@ -337,5 +337,3 @@ class TableModel(QSqlRelationalTableModel):
             self.setRelation(relation[3], rel)
             self.setHeaderData(relation[3], Qt.Horizontal, relation[4])
         self.select()
-
-

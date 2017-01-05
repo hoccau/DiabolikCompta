@@ -13,7 +13,6 @@ from model import Model
 from views import *
 from PyQt5.QtSql import QSqlRelationalDelegate
 from PyQt5.QtCore import Qt, QTranslator, QLocale, QLibraryInfo, QThread
-import time
 
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
@@ -137,6 +136,12 @@ class MainWindow(QMainWindow):
             QMessageBox.information(self, "Base trouvée","Base de donnée : "+files[0])
             self.model.connect_db(files[0])
             return True
+
+        elif len(files) > 1:
+            #QMessageBox.critical(None, "Plusieurs bases trouvées", "Plusieurs bases de données trouvées. Je ne sais que faire...")
+            combo = QComboBox(self)
+            for db_name in files:
+                combo.addItem(db_name)
         
         elif len(files) == 0:
             reponse = QMessageBox.question(
@@ -146,35 +151,28 @@ class MainWindow(QMainWindow):
                 QMessageBox.Yes | QMessageBox.No,
                 QMessageBox.No
                 )
-            if reponse == QMessageBox.Yes:
-                db_name, code = self.input_db_name()
-                print(db_name, code)
-                if db_name == None or code == None:
-                    return False
-                else:
-                    self.t = Thread(self.model.create_db, db_name, code)
-                    self.t.start()
-                    progress = QProgressDialog(
-                        "Création de la base de données",
-                        "Annuler",
-                        0,
-                        10,
-                        self)
-                    progress.show()
-
-                    #self.model.create_db(db_name, code)
-                    #self.model.connect_db(db_name)
-                    #self.set_infos()
-                    #return True
-
             if reponse == QMessageBox.No:
                 return False
+            if reponse == QMessageBox.Yes:
+                new_db = self.create_new_db()
+                if new_db:
+                    self.model.connect_db(new_db)
+                    self.set_infos()
+                    return True
 
-        elif len(files) > 1:
-            #QMessageBox.critical(None, "Plusieurs bases trouvées", "Plusieurs bases de données trouvées. Je ne sais que faire...")
-            combo = QComboBox(self)
-            for db_name in files:
-                combo.addItem(db_name)
+    def create_new_db(self):
+        db_name, code = self.input_db_name()
+        if db_name == None or code == None:
+            return False
+        else:
+            progress_dialog = WaitingDialog(
+                self,
+                self.model,
+                db_name,
+                code)
+            progress_dialog.resize(200,100)
+            progress_dialog.exec_()
+            return db_name
 
     def input_db_name(self):
         code, ok = QInputDialog.getInt(self, 'Code centre',

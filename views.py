@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*- 
 
 from PyQt5.QtWidgets import *
-from PyQt5.QtCore import QRegExp, QDate
+from PyQt5.QtCore import QRegExp, QDate, Qt, QThread, pyqtSignal
 from PyQt5.QtGui import QRegExpValidator, QIntValidator 
 from PyQt5.QtChart import *
 
@@ -87,6 +87,11 @@ class PieceComptable(QDialog):
         self.field_index += 1
 
     def add_subdivision(self):
+        for subdivision in self.subdivisions:
+            if subdivision.is_locked == False:
+                QMessageBox.warning(self,"Toutes les subdivisions ne sont pas validées.",
+                "Vous devez d'abord valider la subdivision en cliquant sur \"ok\"")
+                return False
         subdivision = SubdivisionView(self, self.subdivision_index)
         self.subdivisions.append(subdivision)
         self.subdivisions_grid.addLayout(
@@ -189,8 +194,8 @@ class SubdivisionView():
 
         self.layout.addWidget(self.product, stretch=8)
         self.layout.addWidget(self.prix, stretch=3)
-        self.layout.addWidget(self.code_compta, stretch=10)
         self.layout.addWidget(self.code_analytique, stretch=5)
+        self.layout.addWidget(self.code_compta, stretch=10)
         self.layout.addWidget(self.submit_button, stretch=1)
 
     def refresh_code_compta(self):
@@ -409,3 +414,41 @@ class DateDelegate(QItemDelegate):
     def displayText(self, value):
         date = QDate.fromString(value, "yyyy-MM-dd")
         return date.toString("dd/MM/yyyy")
+
+class WaitingDialog(QDialog):
+    def __init__(self, parent=None, model=None, db_name="", code_centre=0):
+        super(WaitingDialog, self).__init__(parent)
+        self.db_filename = db_name
+        self.layout = QVBoxLayout(self)
+        self.label = QLabel("Création de la base de données...")
+        self.progressBar = QProgressBar(self)
+        self.progressBar.setRange(0,1)
+        self.layout.addWidget(self.label)
+        self.layout.addWidget(self.progressBar)
+
+        self.myLongTask = CreateDB(model, db_name, code_centre)
+        self.myLongTask.taskFinished.connect(self.onFinished)
+
+        self.progressBar.setRange(0,0)
+        self.myLongTask.start()
+
+    def onFinished(self):
+        self.progressBar.setRange(0,1)
+        self.progressBar.setValue(1)
+        self.label.setText(
+            "Base de donnée "+self.db_filename + " créée.")
+        button = QPushButton("OK, je penserai à faire des copies!")
+        button.clicked.connect(self.accept)
+        self.layout.addWidget(button)
+
+class CreateDB(QThread):
+    taskFinished = pyqtSignal()
+    def __init__(self, model, db_name, code_centre, parent=None):
+        QThread.__init__(self)
+        self.model = model
+        self.db_name = db_name
+        self.code_centre = code_centre
+    def run(self):
+        self.model.create_db(self.db_name, self.code_centre)
+        self.taskFinished.emit()
+
