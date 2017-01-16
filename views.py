@@ -49,7 +49,9 @@ class PieceComptable(QDialog):
         fournisseurs_box.addWidget(add_fournisseur)
         self.piece_layout.addRow(QLabel("Fournisseur:"), fournisseurs_box)
         self.piece_layout.addRow(QLabel("Date:"), self.date)
+        
         # Subdivisions BOX
+        self.codes_analytiques = self.model.get_dict(['nom','code'], 'code_analytique')
         self.subdivisions_grid = QGridLayout()
         box_subdivisions = QGroupBox('', self)
         box_subdivisions.setLayout(self.subdivisions_grid)
@@ -92,7 +94,7 @@ class PieceComptable(QDialog):
                 QMessageBox.warning(self,"Toutes les subdivisions ne sont pas validées.",
                 "Vous devez d'abord valider la subdivision en cliquant sur \"ok\"")
                 return False
-        subdivision = SubdivisionView(self, self.subdivision_index)
+        subdivision = SubdivisionView(self, self.subdivision_index, self.codes_analytiques)
         self.subdivisions.append(subdivision)
         self.subdivisions_grid.addLayout(
             self.subdivisions[-1].layout,
@@ -142,9 +144,11 @@ class PieceComptable(QDialog):
     
     def submit_datas(self):    
         record = {}
-        #below : can be improved for faster ?
-        f_id = self.model.get_fournisseurs()[self.fournisseur.currentText()]
-        p_id = self.model.get_typesPayement()[self.typePayement.currentText()]
+        fournisseur_name = self.fournisseur.currentText()
+        f_id = self.model.get_one('id','fournisseurs','nom', fournisseur_name)
+        type_payement_name = self.typePayement.currentText()
+        p_id = self.model.get_one('id','type_payement','nom', type_payement_name)
+        
         record["id"] = str(self.id)
         record["fournisseur_id"] = f_id
         record["date"] = self.date.selectedDate().toString('yyyy-MM-dd')
@@ -158,8 +162,8 @@ class PieceComptable(QDialog):
 
     def refresh_fournisseurs(self):
         self.fournisseur.clear()
-        for fournisseur, rowid in list(self.model.get_fournisseurs().items()):
-            self.fournisseur.addItem(fournisseur)
+        for fournisseur in self.model.get_(['nom'],'fournisseurs'):
+            self.fournisseur.addItem(fournisseur[0])
     
     def refresh_typePayement(self):
         self.typePayement.clear()
@@ -167,20 +171,21 @@ class PieceComptable(QDialog):
             self.codeCompta.addItem(typePayement)
 
 class SubdivisionView():
-    def __init__(self, parent=None, index=None):
+    def __init__(self, parent=None, index=None, codes_analytiques=None):
         self.parent = parent
         self.index = index
         self.model = parent.model
+        self.codes_analytiques = codes_analytiques
         self.is_locked = False
         self.layout = QHBoxLayout()
         self.product = QLineEdit()
         self.product.setPlaceholderText("Désignation")
-        self.code_compta = QComboBox()
-        self.code_analytique = QComboBox()
-        self.refresh_code_compta()
+        self.code_analytique_box = QComboBox()
+        self.code_compta_box = QComboBox()
         self.refresh_code_analytique()
+        self.refresh_code_compta()
         self.prix = QLineEdit()
-        for widget in (self.prix, self.product, self.code_compta, self.code_analytique):
+        for widget in (self.prix, self.product, self.code_compta_box, self.code_analytique_box):
             widget.setStyleSheet(':disabled {color:#333}')
         regexp = QRegExp('\d[\d\.]+')
         self.prix.setValidator(QRegExpValidator(regexp))
@@ -189,32 +194,36 @@ class SubdivisionView():
         self.submit_button.setMaximumWidth(20)
         self.remove_button = QPushButton("-")
         self.remove_button.setMaximumWidth(20)
+
         self.submit_button.clicked.connect(self.verif_datas)
         self.remove_button.clicked.connect(self.clear_layout)
+        self.code_analytique_box.currentIndexChanged.connect(self.refresh_code_compta)
 
         self.layout.addWidget(self.product, stretch=8)
         self.layout.addWidget(self.prix, stretch=3)
-        self.layout.addWidget(self.code_analytique, stretch=5)
-        self.layout.addWidget(self.code_compta, stretch=10)
+        self.layout.addWidget(self.code_analytique_box, stretch=5)
+        self.layout.addWidget(self.code_compta_box, stretch=10)
         self.layout.addWidget(self.submit_button, stretch=1)
 
     def refresh_code_compta(self):
-        self.code_compta.clear()
-        for code_compta, code in list(self.model.get_codesCompta().items()):
-            self.code_compta.addItem(code_compta)
+        self.code_compta_box.clear()
+        #for code_compta, code in list(self.model.get_codesCompta().items()):
+        #    self.code_compta.addItem(code_compta)
+        code_analytique_id = self.codes_analytiques[self.code_analytique_box.currentText()]
+        filtre = 'code_analytique_id = '+str(code_analytique_id)
+        for line in self.model.get_(['nom'], 'codecompta', filtre):
+            self.code_compta_box.addItem(line[0])
     
     def refresh_code_analytique(self):
-        self.code_analytique.clear()
-        names = list(self.model.get_codes_analytiques().keys())
-        names.sort() #yes it's a bad way...
-        for code_analytique in names:
-            self.code_analytique.addItem(code_analytique)
+        self.code_analytique_box.clear()
+        for code_analytique in sorted(self.codes_analytiques.keys()):
+            self.code_analytique_box.addItem(code_analytique)
 
     def lock(self):
         self.is_locked = True
         self.product.setEnabled(False)
-        self.code_compta.setEnabled(False)
-        self.code_analytique.setEnabled(False)
+        self.code_compta_box.setEnabled(False)
+        self.code_analytique_box.setEnabled(False)
         self.prix.setEnabled(False)
 
     def verif_datas(self):
@@ -228,13 +237,14 @@ class SubdivisionView():
             self.lock()
 
     def submit_datas(self):
-            CO_id = self.model.get_codesCompta()[self.code_compta.currentText()]
-            CA_id = self.model.get_codes_analytiques()[self.code_analytique.currentText()]
+            name_cc = self.code_compta_box.currentText()
+            cc_id = self.model.get_one('code', 'codecompta', 'nom', name_cc)
+            ca_id = self.codes_analytiques[self.code_analytique_box.currentText()]
             datas = {}
             datas["piece_comptable_id"] = self.parent.id
             datas["designation"] = self.product.text()
-            datas["code_compta_id"] = CO_id
-            datas["code_analytique_id"] = CA_id
+            datas["code_compta_id"] = cc_id
+            datas["code_analytique_id"] = ca_id
             print(self.prix.text())
             datas["prix"] = self.prix.text()
             if self.parent.model.add(datas,'subdivisions'):

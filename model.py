@@ -68,7 +68,7 @@ class Model(QSqlQueryModel):
         for code in codes_compta_centre:
             self.exec_("INSERT INTO codecompta (code, nom, code_analytique_id)\
             VALUES ("+code+", "+str(code_centre)+")")
-        for code in codes_compta_centre:
+        for code in codes_compta_vehicules:
             self.exec_("INSERT INTO codecompta (code, nom, code_analytique_id)\
             VALUES ("+code+", 600)")
 
@@ -83,7 +83,7 @@ class Model(QSqlQueryModel):
         code INTEGER PRIMARY KEY,\
         nom VARCHAR(20))")
         self.exec_("INSERT INTO code_analytique (code, nom) VALUES\
-        (str(code_centre), 'Centre')")
+        ("+str(code_centre)+", 'Centre')")
         self.exec_("INSERT INTO code_analytique (code, nom) VALUES\
         (600, 'Véhicule')")
         self.exec_("CREATE TABLE pieces_comptables(\
@@ -152,12 +152,48 @@ class Model(QSqlQueryModel):
                 'Argent Disponible')
                 }
 
+    def get_(self, cols=[], table="", qfilter=""):
+        """ Return an array with records """
+        query = "SELECT "+", ".join(cols)+" FROM "+table
+        if qfilter != "":
+            query += " WHERE "+qfilter
+        self.exec_(query)
+        dataset = []
+        while self.query.next():
+            line = []
+            for i, field in enumerate(cols):
+                line.append(self.query.value(i))
+            dataset.append(line)
+        return dataset
+
+    def get_dict(self, cols=[], table='', qfilter=""):
+        """ Return a dictionnary with key, value given at cols parameter """
+        if len(cols) != 2:
+            raise IndexError('get_dict() takes 2 items array as first argument,\
+            which will be key, value of the returned dictionnary')
+        else:
+            query = "SELECT "+", ".join(cols)+" FROM "+table
+            if qfilter != "":
+                query += " WHERE "+qfilter
+            self.exec_(query)
+            return self.query2dic()
+
+    def get_one(self, wanted, table, qfilter_key=None, qfilter_value=None):
+        query = "SELECT " + wanted + " FROM " + table+\
+        " WHERE "+qfilter_key+" = '"+qfilter_value+"' LIMIT 1"
+        self.exec_(query)
+        while self.query.next():
+            return self.query.value(0)
+
     def get_fournisseurs(self):
         self.exec_("SELECT NOM, ID FROM fournisseurs")
         return self.query2dic()
 
-    def get_codesCompta(self):
-        self.exec_("SELECT NOM, CODE FROM codecompta")
+    def get_codesCompta(self, f=None):
+        query = "SELECT NOM, CODE FROM codecompta"
+        if f:
+            query += "WHERE code_analytique_id = "+str(f)
+        self.exec_(query)
         return self.query2dic()
 
     def get_codes_analytiques(self):
