@@ -33,6 +33,7 @@ class MainWindow(QMainWindow):
         addCodeComptaAction = self.add_action('&Code compta', self.addCodeCompta)
         addInputAction = self.add_action("Entrée d'argent", self.add_input)
         setInfosAction = self.add_action('Editer les infos du centre', self.set_infos)
+        editPieceAction = self.add_action('Editer la piece', self.edit_piece)
         ViewRapportAction = self.add_action('Rapport', self.viewRapport)
         exportPdfAction = self.add_action('Exporter un rapport', self.export_pdf)
 
@@ -42,6 +43,7 @@ class MainWindow(QMainWindow):
         fileMenu.addAction(exitAction)
         edit_menu = menubar.addMenu('&Édition')
         edit_menu.addAction(delRowAction)
+        edit_menu.addAction(editPieceAction)
         edit_menu.addAction(setInfosAction)
         view_menu = menubar.addMenu('&Vue')
         view_menu.addAction(ViewRapportAction)
@@ -65,6 +67,13 @@ class MainWindow(QMainWindow):
         db_found = self.retrieve_db()
         if db_found:
             self.create_tables_views()
+
+    def edit_piece(self):
+        code, ok = QInputDialog.getInt(self, 'Identifiant de la pièce',
+            'Entrez l\'identifiant de la pièce à étiter')
+        if ok:
+            self.piece_comptable = PieceComptable(self, code)
+            self.piece_comptable.show()
         
     def create_tables_views(self):
         main_tab_widget = QTabWidget()

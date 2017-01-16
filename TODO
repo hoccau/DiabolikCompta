@@ -1,11 +1,10 @@
 TODO
 
  * Rafraichissement des models : tout checker
- * Empecher l'edition de l'id (et le prix?) de la table pieces comptables
  * inverser l'ordre de la table (dernier enregistrement en premier)?
  * date en format francophone
  * Si on ajoute des subdivisions en trop, on est coincé pour valider la pièce...
- * refresh code_compta...?
+ * Moyen de payement : espèces ou cheque en premier
 
 DONE
 

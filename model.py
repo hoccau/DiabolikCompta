@@ -200,6 +200,16 @@ class Model(QSqlQueryModel):
             self.refresh_model(table)
         return result
 
+    def delete(self, table, qfilter_key, qfilter_value):
+        self.exec_('DELETE FROM '+table+' WHERE '+qfilter_key+' = '+"'"+qfilter_value+"'")
+
+    def update(self, datas={}, table='', qfilter_key=None, qfilter_value=None):
+        l = []
+        for k, v in datas.items():
+            l += [str(k) + "='" + str(v)+"'"]
+        self.exec_("UPDATE "+table+" SET "+', '.join(l)+\
+        ' WHERE '+qfilter_key+" = '"+qfilter_value+"'")
+
     def refresh_model(self, table):
         if table in self.tables.keys():
             self.tables[table].select()
@@ -318,6 +328,45 @@ class Model(QSqlQueryModel):
             if req == False:
                 print(self.query.lastError().databaseText())
         return req
+
+    def get_piece_by_id(self, id_):
+        self.exec_("SELECT fournisseurs.nom, date, total, type_payement.nom\
+        FROM pieces_comptables\
+        INNER JOIN fournisseurs ON fournisseurs.id = Fournisseur_id\
+        INNER JOIN type_payement ON type_payement.id = typePayement_id\
+        WHERE pieces_comptables.id = '"+str(id_)+"' LIMIT 1")
+        result = {}
+        while self.query.next():
+            result['fournisseur'] = self.query.value(0)
+            result['date'] = self.query.value(1)
+            result['total'] = self.query.value(2)
+            result['type_payement'] = self.query.value(3)
+        self.exec_("SELECT id, designation, codecompta.nom, code_analytique.nom, prix\
+        FROM subdivisions\
+        INNER JOIN codecompta ON codecompta.CODE = subdivisions.code_compta_id\
+        INNER JOIN code_analytique ON code_analytique.CODE = subdivisions.code_analytique_id\
+        WHERE piece_comptable_id = '"+str(id_)+"'")
+        result['subdivisions'] = []
+        while self.query.next():
+            sub = {}
+            sub['id'] = self.query.value(0)
+            sub['designation'] = self.query.value(1)
+            sub['piece_comptable'] = id_
+            sub['code_compta'] = self.query.value(2)
+            sub['code_analytique'] = self.query.value(3)
+            sub['prix'] = self.query.value(4)
+            result['subdivisions'].append(sub)
+        return result
+
+class PieceComptableModel(Model):
+    def __init__(self, parent, id_):
+        super(PieceComptableModel, self).__init__(parent, id_)
+        fournisseur_id = self.get_one('fournisseur_id','pieces_comptables','id',id_)
+        self.fournisseur = self.get_one('nom','fournisseurs','id',fournisseur_id)
+        self.date = self.get_one('date','pieces_comptables','id',id_)
+        self.price = self.get_one('total','pieces_comptables','id',id_)
+        type_payement_id = self.get_one('TypePayement_id','pieces_comptables','id',id_)
+        self.type_payement = self.get_one('nom','type_payement','id',id_)
 
 class InfosModel(QSqlTableModel):
     def __init__(self, parent, db):

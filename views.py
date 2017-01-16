@@ -7,36 +7,25 @@ from PyQt5.QtGui import QRegExpValidator, QIntValidator
 from PyQt5.QtChart import *
 
 class PieceComptable(QDialog):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, id_ = None):
         super(PieceComptable, self).__init__(parent)
 
         self.parent = parent
         self.model = parent.model
 
-        if self.model.get_last_id('pieces_comptables') == None:
-            self.id = 1
-        else:
-            self.id = int(self.model.get_last_id('pieces_comptables')) + 1
-        self.setWindowTitle("Pièce comptable #"+str(self.id))
-        
-        nameFournisseur = QLabel("Fournisseur:")
-        add_fournisseur = QPushButton('Ajouter')
         self.fournisseur = QComboBox()
-        self.refresh_fournisseurs()
-
-        namePrice = QLabel("Prix (€)")
-        self.price = QLineEdit()
-        regexp = QRegExp('\d[\d\.]+')
-        self.price.setValidator(QRegExpValidator(regexp))
-
-        nameTypePayement = QLabel("Type de payement")
-        self.typePayement = QComboBox()
-        self.typePayement.addItems(list(self.model.get_dict(
-            ['nom','id'], 'type_payement').keys()))
+        add_fournisseur = QPushButton('Ajouter')
         self.date = QCalendarWidget()
-
+        self.price = QLineEdit()
+        self.typePayement = QComboBox()
         self.submitButton = QPushButton("Enregistrer")
         quitButton = QPushButton("Annuler la pièce")
+
+        self.refresh_fournisseurs()
+        regexp = QRegExp('\d[\d\.]+')
+        self.price.setValidator(QRegExpValidator(regexp))
+        self.typePayement.addItems(list(self.model.get_dict(
+            ['nom','id'], 'type_payement').keys()))
 
         self.grid = QGridLayout()
         self.piece_layout = QFormLayout(self)
@@ -52,16 +41,16 @@ class PieceComptable(QDialog):
         self.piece_layout.addRow(QLabel("Date:"), self.date)
         
         # Subdivisions BOX
-        self.codes_analytiques = self.model.get_dict(['nom','code'], 'code_analytique')
-        self.subdivisions_grid = QGridLayout()
-        box_subdivisions = QGroupBox('', self)
-        box_subdivisions.setLayout(self.subdivisions_grid)
         self.subdivision_index = 1
-        add_button = QPushButton('Ajouter une subdivision')
-        self.subdivisions_grid.addWidget(add_button, 100, 0, 100, 7)
         self.subdivisions = []
-        self.add_subdivision()
-        #self.grid.addWidget(box_subdivisions, 0, 1)
+        self.codes_analytiques = self.model.get_dict(['nom','code'], 'code_analytique')
+
+        box_subdivisions = QGroupBox('', self)
+        add_button = QPushButton('Ajouter une subdivision')
+        self.subdivisions_grid = QGridLayout()
+        self.subdivisions_grid.addWidget(add_button, 100, 0, 100, 7)
+        box_subdivisions.setLayout(self.subdivisions_grid)
+
         self.piece_layout.addRow(QLabel("Subdivisions:"), box_subdivisions)
         self.piece_layout.addRow(QLabel("Prix total:"), price_box)
         buttons_box = QHBoxLayout()
@@ -71,14 +60,35 @@ class PieceComptable(QDialog):
         box_piece = QGroupBox('Piece comptable', self)
         box_piece.setLayout(self.piece_layout)
         self.grid.addWidget(box_piece, 0,0)
-        
         self.setLayout(self.grid)
 
         self.submitButton.clicked.connect(self.verif_datas)
         add_button.clicked.connect(self.add_subdivision)
         quitButton.clicked.connect(self.reject)
         add_fournisseur.clicked.connect(self.add_fournisseur)
-    
+        
+        if not id_:
+            self.add_subdivision()
+            if self.model.get_last_id('pieces_comptables') == None:
+                self.id = 1
+            else:
+                self.id = int(self.model.get_last_id('pieces_comptables')) + 1
+            self.new_record = True
+        else:
+            self.new_record = False
+            self.id = id_
+            self.populate(id_)
+        self.setWindowTitle("Pièce comptable #"+str(self.id))
+
+    def populate(self, id_):
+        piece = self.model.get_piece_by_id(id_)
+        self.fournisseur.setCurrentText(piece['fournisseur'])
+        self.date.setSelectedDate(QDate.fromString(piece['date'],'yyyy-MM-dd'))
+        self.price.insert(str(piece['total']))
+        self.typePayement.setCurrentText(piece['type_payement'])
+        for subdivision_datas in piece['subdivisions']:
+            self.add_subdivision(subdivision_datas)
+
     def add_field(self, label_name, widget):
         self.grid.addWidget(QLabel(label_name), self.field_index, 0)
         self.grid.addWidget(widget, self.field_index, 1)
@@ -89,13 +99,16 @@ class PieceComptable(QDialog):
         self.grid.addLayout(layout, self.field_index, 1)
         self.field_index += 1
 
-    def add_subdivision(self):
+    def add_subdivision(self, datas=None):
+        """
         for subdivision in self.subdivisions:
             if subdivision.is_locked == False:
                 QMessageBox.warning(self,"Toutes les subdivisions ne sont pas validées.",
                 "Vous devez d'abord valider la subdivision en cliquant sur \"ok\"")
                 return False
-        subdivision = SubdivisionView(self, self.subdivision_index, self.codes_analytiques)
+        """
+        subdivision = SubdivisionView(
+            self, self.subdivision_index, self.codes_analytiques, datas=datas)
         self.subdivisions.append(subdivision)
         self.subdivisions_grid.addLayout(
             self.subdivisions[-1].layout,
@@ -116,7 +129,7 @@ class PieceComptable(QDialog):
             
     def all_subdivisions_valid(self):
         for subdivision in self.subdivisions:
-            if subdivision.is_locked:
+            if not subdivision.verif_datas():
                 return False
         return True
 
@@ -132,10 +145,10 @@ class PieceComptable(QDialog):
             QMessageBox.warning(self, "Erreur", "Il faut entrer un prix total")
         elif len(self.subdivisions) < 1:
             QMessageBox.warning(self, "Erreur", "Il faut entrer au minimum une subdivision")
-        elif self.all_subdivisions_valid():
+        elif not self.all_subdivisions_valid():
             QMessageBox.warning(self,
                 "Erreur",
-                "Toutes les subdivisions ne sont pas validées")
+                "Toutes les subdivisions ne sont pas correctement remplies")
         elif self.get_total_subdivisions_price() != float(self.price.text()):
             QMessageBox.warning(self,
                 "Erreur",
@@ -155,7 +168,11 @@ class PieceComptable(QDialog):
         record["date"] = self.date.selectedDate().toString('yyyy-MM-dd')
         record["total"] = self.price.text()
         record["typePayement_id"] = p_id
-        self.model.add(record, 'pieces_comptables')
+        if self.new_record:
+            self.model.add(record, 'pieces_comptables')
+        else:
+            self.model.update(record, 'pieces_comptables', 'id', str(self.id))
+            self.model.delete('subdivisions', 'piece_comptable_id', str(self.id))
         for subdivision in self.subdivisions:
             subdivision.submit_datas()
         self.model.tables['pieces_comptables'].select()
@@ -172,31 +189,33 @@ class PieceComptable(QDialog):
             self.codeCompta.addItem(typePayement[0])
 
 class SubdivisionView():
-    def __init__(self, parent=None, index=None, codes_analytiques=None):
+    def __init__(self, parent=None, index=None, codes_analytiques=None, datas=None):
         self.parent = parent
         self.index = index
         self.model = parent.model
         self.codes_analytiques = codes_analytiques
         self.is_locked = False
-        self.layout = QHBoxLayout()
+        
         self.product = QLineEdit()
-        self.product.setPlaceholderText("Désignation")
+        self.prix = QLineEdit()
         self.code_analytique_box = QComboBox()
         self.code_compta_box = QComboBox()
+        #self.submit_button = QPushButton("OK")
+        self.remove_button = QPushButton("-")
+
+        self.layout = QHBoxLayout()
+        self.product.setPlaceholderText("Désignation")
         self.refresh_code_analytique()
         self.refresh_code_compta()
-        self.prix = QLineEdit()
         for widget in (self.prix, self.product, self.code_compta_box, self.code_analytique_box):
             widget.setStyleSheet(':disabled {color:#333}')
         regexp = QRegExp('\d[\d\.]+')
         self.prix.setValidator(QRegExpValidator(regexp))
         self.prix.setPlaceholderText("Prix")
-        self.submit_button = QPushButton("OK")
-        self.submit_button.setMaximumWidth(20)
-        self.remove_button = QPushButton("-")
+        #self.submit_button.setMaximumWidth(20)
         self.remove_button.setMaximumWidth(20)
 
-        self.submit_button.clicked.connect(self.verif_datas)
+        #self.submit_button.clicked.connect(self.verif_datas)
         self.remove_button.clicked.connect(self.clear_layout)
         self.code_analytique_box.currentIndexChanged.connect(self.refresh_code_compta)
 
@@ -204,7 +223,16 @@ class SubdivisionView():
         self.layout.addWidget(self.prix, stretch=3)
         self.layout.addWidget(self.code_analytique_box, stretch=5)
         self.layout.addWidget(self.code_compta_box, stretch=10)
-        self.layout.addWidget(self.submit_button, stretch=1)
+        self.layout.addWidget(self.remove_button, stretch=1)
+
+        if datas:
+            self.populate(datas)
+
+    def populate(self, datas):
+        self.product.insert(datas['designation'])
+        self.prix.insert(str(datas['prix']))
+        self.code_analytique_box.setCurrentText(datas['code_analytique'])
+        self.code_compta_box.setCurrentText(datas['code_compta'])
 
     def refresh_code_compta(self):
         self.code_compta_box.clear()
@@ -233,9 +261,10 @@ class SubdivisionView():
         elif self.prix.text() == "":
             QMessageBox.warning(self.parent, "Erreur", "Il faut entrer un prix")
         else:
-            self.submit_button.deleteLater()
-            self.layout.insertWidget(4, self.remove_button)
-            self.lock()
+            #self.submit_button.deleteLater()
+            #self.layout.insertWidget(4, self.remove_button)
+            #self.lock()
+            return True
 
     def submit_datas(self):
             name_cc = self.code_compta_box.currentText()
@@ -262,6 +291,7 @@ class SubdivisionView():
             else:
                 self.clearLayout(item.layout())
         self.parent.subdivisions.remove(self)
+        self.parent.adjustSize()
 
 class AddInputDialog(QDialog):
     def __init__(self, parent=None):
