@@ -24,8 +24,7 @@ class PieceComptable(QDialog):
         self.refresh_fournisseurs()
         regexp = QRegExp('\d[\d\.]+')
         self.price.setValidator(QRegExpValidator(regexp))
-        self.typePayement.addItems(list(self.model.get_dict(
-            ['nom','id'], 'type_payement').keys()))
+        self.refresh_typePayement()
 
         self.grid = QGridLayout()
         self.piece_layout = QFormLayout(self)
@@ -185,8 +184,8 @@ class PieceComptable(QDialog):
     
     def refresh_typePayement(self):
         self.typePayement.clear()
-        for typePayement in self.model.get_(['nom'],'types_payement'):
-            self.codeCompta.addItem(typePayement[0])
+        for typePayement in self.model.get_(['nom'],'type_payement'):
+            self.typePayement.addItem(typePayement[0])
 
 class SubdivisionView():
     def __init__(self, parent=None, index=None, codes_analytiques=None, datas=None):

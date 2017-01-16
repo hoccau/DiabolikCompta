@@ -81,7 +81,8 @@ class MainWindow(QMainWindow):
             self.model.tables['pieces_comptables'])
         self.subdivisions_view = self.create_table_view(self.model.tables['subdivisions'])
         self.inputs_view = self.create_table_view(self.model.tables['inputs'])
-
+        for v in (self.pieces_comptables_view, self.subdivisions_view, self.inputs_view):
+            v.setEditTriggers(QAbstractItemView.NoEditTriggers)
         main_tab_widget.addTab(self.pieces_comptables_view, "Pièces comptables")
         main_tab_widget.addTab(self.subdivisions_view, "Subdivisions")
         main_tab_widget.addTab(self.inputs_view, "Entrées d'argent")
