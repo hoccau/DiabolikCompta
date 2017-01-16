@@ -185,25 +185,6 @@ class Model(QSqlQueryModel):
         while self.query.next():
             return self.query.value(0)
 
-    def get_fournisseurs(self):
-        self.exec_("SELECT NOM, ID FROM fournisseurs")
-        return self.query2dic()
-
-    def get_codesCompta(self, f=None):
-        query = "SELECT NOM, CODE FROM codecompta"
-        if f:
-            query += "WHERE code_analytique_id = "+str(f)
-        self.exec_(query)
-        return self.query2dic()
-
-    def get_codes_analytiques(self):
-        self.exec_("SELECT nom, code FROM code_analytique ORDER BY code DESC")
-        return self.query2dic()
-
-    def get_typesPayement(self):
-        self.query.exec_("SELECT NOM, ID FROM type_payement")
-        return self.query2dic()
-
     def add(self, datas, table):
         col_title = ', '.join([str(i) for i in list(datas.keys())])
         values = []

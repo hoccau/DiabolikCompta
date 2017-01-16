@@ -31,7 +31,8 @@ class PieceComptable(QDialog):
 
         nameTypePayement = QLabel("Type de payement")
         self.typePayement = QComboBox()
-        self.typePayement.addItems(list(self.model.get_typesPayement().keys()))
+        self.typePayement.addItems(list(self.model.get_dict(
+            ['nom','id'], 'type_payement').keys()))
         self.date = QCalendarWidget()
 
         self.submitButton = QPushButton("Enregistrer")
@@ -167,8 +168,8 @@ class PieceComptable(QDialog):
     
     def refresh_typePayement(self):
         self.typePayement.clear()
-        for typePayement, rowid in list(self.model.get_typesPayement().items()):
-            self.codeCompta.addItem(typePayement)
+        for typePayement in self.model.get_(['nom'],'types_payement'):
+            self.codeCompta.addItem(typePayement[0])
 
 class SubdivisionView():
     def __init__(self, parent=None, index=None, codes_analytiques=None):
