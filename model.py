@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*- 
 
 from PyQt5.QtSql import QSqlQueryModel, QSqlDatabase, QSqlQuery, QSqlRelationalTableModel, QSqlRelation, QSqlTableModel
-from PyQt5.QtCore import Qt, QDate, QAbstractItemModel
+from PyQt5.QtCore import Qt, QDate, QAbstractItemModel, QSortFilterProxyModel
 
 DEBUG_SQL = True
 
@@ -329,6 +329,26 @@ class Model(QSqlQueryModel):
                 print(self.query.lastError().databaseText())
         return req
 
+    def get_pieces_comptables(self):
+        self.exec_("SELECT pieces_comptables.id, fournisseurs.nom, date, total, type_payement.nom\
+        FROM pieces_comptables\
+        INNER JOIN fournisseurs ON fournisseurs.id = Fournisseur_id\
+        INNER JOIN type_payement ON type_payement.id = typePayement_id")
+        result = []
+        while self.query.next():
+            result.append([self.query.value(x) for x in range(5)])
+        return result
+
+    def get_subdivisions(self):
+        self.exec_("SELECT id, designation, piece_comptable_id, codecompta.nom, code_analytique.nom, prix\
+        FROM subdivisions\
+        INNER JOIN codecompta ON codecompta.CODE = subdivisions.code_compta_id\
+        INNER JOIN code_analytique ON code_analytique.CODE = subdivisions.code_analytique_id")
+        result = []
+        while self.query.next():
+            result.append([self.query.value(x) for x in range(6)])
+        return result
+
     def get_piece_by_id(self, id_):
         self.exec_("SELECT fournisseurs.nom, date, total, type_payement.nom\
         FROM pieces_comptables\
@@ -357,16 +377,6 @@ class Model(QSqlQueryModel):
             sub['prix'] = self.query.value(4)
             result['subdivisions'].append(sub)
         return result
-
-class PieceComptableModel(Model):
-    def __init__(self, parent, id_):
-        super(PieceComptableModel, self).__init__(parent, id_)
-        fournisseur_id = self.get_one('fournisseur_id','pieces_comptables','id',id_)
-        self.fournisseur = self.get_one('nom','fournisseurs','id',fournisseur_id)
-        self.date = self.get_one('date','pieces_comptables','id',id_)
-        self.price = self.get_one('total','pieces_comptables','id',id_)
-        type_payement_id = self.get_one('TypePayement_id','pieces_comptables','id',id_)
-        self.type_payement = self.get_one('nom','type_payement','id',id_)
 
 class InfosModel(QSqlTableModel):
     def __init__(self, parent, db):

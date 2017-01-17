@@ -35,11 +35,13 @@ class MainWindow(QMainWindow):
         setInfosAction = self.add_action('Editer les infos du centre', self.set_infos)
         editPieceAction = self.add_action('Editer la piece', self.edit_piece)
         ViewRapportAction = self.add_action('Rapport', self.viewRapport)
-        exportPdfAction = self.add_action('Exporter un rapport', self.export_pdf)
+        exportPdfAction = self.add_action('Exporter un rapport PDF', self.export_pdf)
+        exportXlsxAction = self.add_action('Exporter un fichier Excel', self.export_excel)
 
         fileMenu = menubar.addMenu('&Fichier')
         fileMenu.addAction(openAction)
         fileMenu.addAction(exportPdfAction)
+        fileMenu.addAction(exportXlsxAction)
         fileMenu.addAction(exitAction)
         edit_menu = menubar.addMenu('&Édition')
         edit_menu.addAction(delRowAction)
@@ -70,7 +72,7 @@ class MainWindow(QMainWindow):
 
     def edit_piece(self):
         code, ok = QInputDialog.getInt(self, 'Identifiant de la pièce',
-            'Entrez l\'identifiant de la pièce à étiter')
+            'Entrez l\'identifiant de la pièce à éditer')
         if ok:
             self.piece_comptable = PieceComptable(self, code)
             self.piece_comptable.show()
@@ -79,10 +81,9 @@ class MainWindow(QMainWindow):
         main_tab_widget = QTabWidget()
         self.pieces_comptables_view = self.create_table_view(
             self.model.tables['pieces_comptables'])
+        #self.pieces_comptables_view = self.create_table_view(self.model.filter_model)
         self.subdivisions_view = self.create_table_view(self.model.tables['subdivisions'])
         self.inputs_view = self.create_table_view(self.model.tables['inputs'])
-        for v in (self.pieces_comptables_view, self.subdivisions_view, self.inputs_view):
-            v.setEditTriggers(QAbstractItemView.NoEditTriggers)
         main_tab_widget.addTab(self.pieces_comptables_view, "Pièces comptables")
         main_tab_widget.addTab(self.subdivisions_view, "Subdivisions")
         main_tab_widget.addTab(self.inputs_view, "Entrées d'argent")
@@ -105,6 +106,8 @@ class MainWindow(QMainWindow):
         view.setModel(model)
         view.setItemDelegate(QSqlRelationalDelegate())
         view.resizeColumnsToContents()
+        view.setSortingEnabled(True)
+        view.setEditTriggers(QAbstractItemView.NoEditTriggers)
         return view
 
     def add_action(self, name, function_name, shortcut=None):
@@ -202,8 +205,17 @@ class MainWindow(QMainWindow):
         if filename:
             if filename[-4:] != '.pdf':
                 filename += '.pdf'
-            import export
-            export.create_pdf(filename, model=self.model)
+            import export_pdf
+            export_pdf.create_pdf(filename, model=self.model)
+
+    def export_excel(self):
+        filename, _format = QFileDialog.getSaveFileName(
+            self, "Exporter une feuille Excel", None, 'XLSX(*.xlsx)')
+        if filename:
+            if filename[-4:] != '.xlsx':
+                filename += '.xlsx'
+            import export_xlsx
+            export_xlsx.create_xlsx(filename, model=self.model)
 
     def add_piece_comptable(self):
         self.piece_comptable = PieceComptable(self)
