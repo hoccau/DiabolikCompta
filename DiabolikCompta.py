@@ -217,8 +217,15 @@ class MainWindow(QMainWindow):
         code, ok = QInputDialog.getInt(self, 'Identifiant de la pièce',
             'Entrez l\'identifiant de la pièce à éditer')
         if ok:
-            self.piece_comptable = PieceComptable(self, code)
-            self.piece_comptable.show()
+            print(self.model.get_(['id'], 'pieces_comptables'))
+            ids_list = self.model.get_(['id'], 'pieces_comptables')
+            ids = [item for l in ids_list for item in l]
+            if code in ids:
+                self.piece_comptable = PieceComptable(self, code)
+                self.piece_comptable.show()
+            else:
+                QMessageBox.warning(self, "Erreur", "Cette pièce n'existe pas.")
+                
 
     def add_piece_comptable(self):
         self.piece_comptable = PieceComptable(self)

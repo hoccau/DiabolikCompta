@@ -19,7 +19,7 @@ class PieceComptable(QDialog):
         self.price = QLineEdit()
         self.typePayement = QComboBox()
         self.submitButton = QPushButton("Enregistrer")
-        quitButton = QPushButton("Annuler la pièce")
+        quitButton = QPushButton("Annuler")
 
         self.refresh_fournisseurs()
         regexp = QRegExp('\d[\d\.]+')
