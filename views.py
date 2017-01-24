@@ -477,7 +477,7 @@ class WaitingDialog(QDialog):
         self.progressBar.setValue(1)
         self.label.setText(
             "Base de donnée "+self.db_filename + " créée.")
-        button = QPushButton("OK, je penserai à faire des copies!")
+        button = QPushButton("OK")
         button.clicked.connect(self.accept)
         self.layout.addWidget(button)
 
