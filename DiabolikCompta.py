@@ -12,15 +12,14 @@ from PyQt5.QtGui import QIcon
 from model import Model
 from views import *
 from PyQt5.QtSql import QSqlRelationalDelegate
-from PyQt5.QtCore import Qt, QTranslator, QLocale, QLibraryInfo, QThread
+from PyQt5.QtCore import Qt, QTranslator, QLocale, QLibraryInfo, QThread, QSettings
 import sys, os, configparser
 
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
 
-        self.config = configparser.ConfigParser()
-        self.config.read('config.ini')
+        self.config = QSettings("Kidivid", "DiabolikCompta")
         self.initUI()
 
     def initUI(self):
@@ -158,9 +157,10 @@ class MainWindow(QMainWindow):
         self.right_col.close()
 
     def retrieve_db(self):
-        path = self.config['GLOBAL']['LastDbFile']
-        if os.path.exists(path):
-            self.connect_db(path)
+        path = self.config.value("lastdbpath")
+        if path:
+            if os.path.exists(path):
+                self.connect_db(path)
         
     def create_new_db(self):
         code, ok = QInputDialog.getInt(self, 'Code centre',
@@ -187,9 +187,7 @@ class MainWindow(QMainWindow):
     def connect_db(self, db_path):
         self.model.connect_db(db_path)
         self.statusBar().showMessage('Connecté sur : '+db_path)
-        self.config['GLOBAL']['LastDbFile'] = db_path
-        with open('config.ini','w') as configfile:
-            self.config.write(configfile)
+        self.config.setValue("lastdbpath", db_path)
         self.create_tables_views()
         self.enable_db_actions(True)
 
@@ -254,7 +252,7 @@ class MainWindow(QMainWindow):
         res = AddInputDialog(self)
 
     def about_d(self):
-        QMessageBox.information(self, "Diabolik Compta","version 0.0.1")
+        QMessageBox.information(self, "Diabolik Compta","version 0.0.2")
 
 class Thread(QThread):
     def __init__(self, function, *args):
@@ -267,8 +265,6 @@ class Thread(QThread):
 
 app = QApplication(sys.argv)
 translator = QTranslator()
-print(QLocale.system().name())
-print(QLibraryInfo.TranslationsPath)
 translator.load('qt_' + QLocale.system().name(), 
     QLibraryInfo.location(QLibraryInfo.TranslationsPath))
 app.installTranslator(translator)

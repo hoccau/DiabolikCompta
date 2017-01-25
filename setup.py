@@ -1,5 +1,13 @@
-import sys
+import sys, os
 from cx_Freeze import setup, Executable
+
+VERSION = "0.0.2"
+
+if sys.platform == "win32":
+	print("It is a win32 application")
+	base = "Win32GUI"
+else:
+        base = None
 
 build_exe_options = {'build_exe': {
         "excludes": [],
@@ -8,13 +16,8 @@ build_exe_options = {'build_exe': {
         "optimize": 2}
         }
 
-base = None
-if sys.platform == "win32":
-	print("It is a win32 application")
-	base = "Win32GUI"
-
-setup(  name = "Diabolik Compta",
-        version = "0.0.1",
+setup(  name = "DiabolikCompta",
+        version = VERSION,
         description = "Diabolik Compta",
         options = build_exe_options,
         executables = [Executable("DiabolikCompta.py",
