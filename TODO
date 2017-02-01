@@ -1,20 +1,6 @@
 TODO
 
- * Rafraichissement des models : tout checker
  * inverser l'ordre de la table (dernier enregistrement en premier)?
  * date en format francophone
- * Si on ajoute des subdivisions en trop, on est coincé pour valider la pièce...
- * Moyen de payement : espèces ou cheque en premier
+ * Export Excel à ameliorer
 
-DONE
-
- * Eviter la redondance de codes compta (chaque code compta doit être unique)
- * Vue de la base
- * BUG : plantage lorsqu'on est sur la vue database et que l'on tente d'entrer un fournisseur
- * Rafraichir la table quand on entre des données via formulaire
- * champs "Cumul du prix"
- * champs "Date"
- * Pouvoir supprimer une ligne
- * Table contenant les infos du centre de vacances
- * Filtres, rapports...
- * PDF export
