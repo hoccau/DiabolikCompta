@@ -343,10 +343,21 @@ class Model(QSqlQueryModel):
         FROM subdivisions\
         INNER JOIN codecompta ON codecompta.CODE = subdivisions.code_compta_id\
         INNER JOIN code_analytique ON code_analytique.CODE = subdivisions.code_analytique_id")
+        return self._row2array(6)
+
+    def get_subdivisions_for_export(self):
+        self.exec_("SELECT piece_comptable_id, fournisseurs.nom, pieces_comptables.Date, prix, code_compta_id\
+        FROM subdivisions\
+        INNER JOIN pieces_comptables ON pieces_comptables.id = piece_comptable_id\
+        INNER JOIN fournisseurs ON fournisseurs.id = pieces_comptables.Fournisseur_id")
+        return self._row2array(5)
+
+    def _row2array(self, nbr_col):
         result = []
         while self.query.next():
-            result.append([self.query.value(x) for x in range(6)])
+            result.append([self.query.value(x) for x in range(nbr_col)])
         return result
+
 
     def get_piece_by_id(self, id_):
         self.exec_("SELECT fournisseurs.nom, date, total, type_payement.nom\

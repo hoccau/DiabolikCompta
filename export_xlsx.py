@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 from xlsxwriter import Workbook
+from xlsxwriter.utility import xl_rowcol_to_cell
 
 def create_xlsx(filename='foo.xlsx', model=None):
     infos_centre = model.get_infos()
@@ -14,25 +15,49 @@ def create_xlsx(filename='foo.xlsx', model=None):
 
     feuille2 = classeur.add_worksheet("Pièces comptables")
     names = ['id','fournisseur','date','total','moyen de payement']
-    write_sheet(model.get_pieces_comptables(), names, feuille2)
+    write_sheet(names, model.get_pieces_comptables(), feuille2)
 
     feuille3 = classeur.add_worksheet("Subdivisions comptables")
-    names = ['id','Désignation','Pièce comptable ID','Code compta','Code analytique', 'montant']
-    write_sheet(model.get_(
-        ['id',
-        'designation',
-        'piece_comptable_id',
-        'code_compta_id',
-        'code_analytique_id',
-        'prix'],
-        'subdivisions'), names, feuille3)
+    names = [
+        'Numéro de pièce',
+        'Fournisseur',
+        'Date',
+        'Montant',
+        'Cumul',
+        'Code comptable']
+    subdivisions = model.get_subdivisions_for_export()
+    write_subdivisions_sheet(names, subdivisions, feuille3)
 
-def write_sheet(array, names, feuille):
-    for i, name in enumerate(names):
-        feuille.write(0, i, name)
+def headersheet(f):
+    def wrapper(*args, **kwargs):
+        names = args[0]
+        for i, name in enumerate(names):
+            args[2].write(0, i, name)
+        return f(*args, **kwargs)
+    return wrapper
+
+@headersheet
+def write_sheet(names, array, feuille):
     for i, row in enumerate(array):
         for j, cell in enumerate(row):
             feuille.write(i+1, j, cell)
+
+@headersheet
+def write_subdivisions_sheet(names, array, feuille):
+    for i, row in enumerate(array):
+        j, idx, last = 0, 0, 6
+        while j < last:
+            if j == 4:
+                if i == 0:
+                    feuille.write_formula(i+1, j, '= D2')
+                else:
+                    last_cumul = xl_rowcol_to_cell(i, j)
+                    montant = xl_rowcol_to_cell(i+1, j-1)
+                    feuille.write_formula(i+1, j, '=' + last_cumul + '+' + montant)
+            else:
+                feuille.write(i+1, j, row[idx])
+                idx += 1
+            j += 1
 
 if __name__ == '__main__':
     import model
