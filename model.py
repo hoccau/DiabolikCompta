@@ -9,7 +9,6 @@ DEBUG_SQL = True
 class Model(QSqlQueryModel):
     def __init__(self, parent=None):
         super(Model, self).__init__(parent)
-
         self.db = QSqlDatabase.addDatabase('QSQLITE')
 
     def create_db(self, db_name, code_centre):
@@ -310,9 +309,9 @@ class Model(QSqlQueryModel):
         fields = []
         while self.query.next():
             fields.append(self.query.value(1))
-        return self.row2dic(fields=fields, table='infos')
+        return self._row2dic(fields=fields, table='infos')
     
-    def row2dic(self, fields=[], table=''):
+    def _row2dic(self, fields=[], table=''):
         q = 'SELECT ' + ', '.join(fields) + ' FROM ' + table
         self.exec_(q)
         while self.query.next():

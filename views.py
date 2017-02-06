@@ -22,9 +22,9 @@ class PieceComptable(QDialog):
         quitButton = QPushButton("Annuler")
 
         self.refresh_fournisseurs()
+        self.refresh_typePayement()
         regexp = QRegExp('\d[\d\.]+')
         self.price.setValidator(QRegExpValidator(regexp))
-        self.refresh_typePayement()
 
         self.grid = QGridLayout()
         self.piece_layout = QFormLayout(self)
@@ -88,26 +88,13 @@ class PieceComptable(QDialog):
         for subdivision_datas in piece['subdivisions']:
             self.add_subdivision(subdivision_datas)
 
-    def add_field(self, label_name, widget):
-        self.grid.addWidget(QLabel(label_name), self.field_index, 0)
-        self.grid.addWidget(widget, self.field_index, 1)
-        self.field_index += 1
-
-    def add_layout(self, label_name, layout):
-        self.grid.addWidget(QLabel(label_name), self.field_index, 0)
-        self.grid.addLayout(layout, self.field_index, 1)
-        self.field_index += 1
-
     def add_subdivision(self, datas=None):
-        """
-        for subdivision in self.subdivisions:
-            if subdivision.is_locked == False:
-                QMessageBox.warning(self,"Toutes les subdivisions ne sont pas validées.",
-                "Vous devez d'abord valider la subdivision en cliquant sur \"ok\"")
-                return False
-        """
         subdivision = SubdivisionView(
-            self, self.subdivision_index, self.codes_analytiques, datas=datas)
+            parent = self,
+            index = self.subdivision_index,
+            codes_analytiques = self.codes_analytiques,
+            datas = datas
+            )
         self.subdivisions.append(subdivision)
         self.subdivisions_grid.addLayout(
             self.subdivisions[-1].layout,
@@ -115,7 +102,7 @@ class PieceComptable(QDialog):
         self.subdivision_index += 1
 
     def add_fournisseur(self):
-        f = self.parent.addFournisseur()
+        f = self.parent.add_fournisseur()
         if f:
             self.refresh_fournisseurs()
 
@@ -193,13 +180,11 @@ class SubdivisionView():
         self.index = index
         self.model = parent.model
         self.codes_analytiques = codes_analytiques
-        self.is_locked = False
         
         self.product = QLineEdit()
         self.prix = QLineEdit()
         self.code_analytique_box = QComboBox()
         self.code_compta_box = QComboBox()
-        #self.submit_button = QPushButton("OK")
         self.remove_button = QPushButton("-")
 
         self.layout = QHBoxLayout()
@@ -211,10 +196,8 @@ class SubdivisionView():
         regexp = QRegExp('\d[\d\.]+')
         self.prix.setValidator(QRegExpValidator(regexp))
         self.prix.setPlaceholderText("Prix")
-        #self.submit_button.setMaximumWidth(20)
         self.remove_button.setMaximumWidth(20)
 
-        #self.submit_button.clicked.connect(self.verif_datas)
         self.remove_button.clicked.connect(self.clear_layout)
         self.code_analytique_box.currentIndexChanged.connect(self.refresh_code_compta)
 
@@ -235,8 +218,6 @@ class SubdivisionView():
 
     def refresh_code_compta(self):
         self.code_compta_box.clear()
-        #for code_compta, code in list(self.model.get_codesCompta().items()):
-        #    self.code_compta.addItem(code_compta)
         code_analytique_id = self.codes_analytiques[self.code_analytique_box.currentText()]
         filtre = 'code_analytique_id = '+str(code_analytique_id)
         for line in self.model.get_(['nom'], 'codecompta', filtre):
@@ -247,22 +228,12 @@ class SubdivisionView():
         for code_analytique in sorted(self.codes_analytiques.keys()):
             self.code_analytique_box.addItem(code_analytique)
 
-    def lock(self):
-        self.is_locked = True
-        self.product.setEnabled(False)
-        self.code_compta_box.setEnabled(False)
-        self.code_analytique_box.setEnabled(False)
-        self.prix.setEnabled(False)
-
     def verif_datas(self):
         if self.product.text() == "":
             QMessageBox.warning(self.parent, "Erreur", "Il faut entrer un nom de produit")
         elif self.prix.text() == "":
             QMessageBox.warning(self.parent, "Erreur", "Il faut entrer un prix")
         else:
-            #self.submit_button.deleteLater()
-            #self.layout.insertWidget(4, self.remove_button)
-            #self.lock()
             return True
 
     def submit_datas(self):

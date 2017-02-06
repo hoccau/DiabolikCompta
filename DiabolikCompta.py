@@ -12,7 +12,7 @@ from PyQt5.QtGui import QIcon
 from model import Model
 from views import *
 from PyQt5.QtSql import QSqlRelationalDelegate
-from PyQt5.QtCore import Qt, QTranslator, QLocale, QLibraryInfo, QThread, QSettings
+from PyQt5.QtCore import Qt, QTranslator, QLocale, QLibraryInfo, QSettings
 import sys, os, configparser
 
 class MainWindow(QMainWindow):
@@ -27,23 +27,23 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Diabolik Compta")
         menubar = self.menuBar()
 
-        exitAction = self.add_action('&Quitter', qApp.quit, 'Ctrl+Q')
-        newAction = self.add_action('Nouveau', self.create_new_db, 'Ctrl+N')
-        openAction = self.add_action('&Ouvrir', self.open_db, 'Ctrl+O')
-        aboutAction = self.add_action('à propos', self.about_d)
+        exitAction = self._add_action('&Quitter', qApp.quit, 'Ctrl+Q')
+        newAction = self._add_action('Nouveau', self.create_new_db, 'Ctrl+N')
+        openAction = self._add_action('&Ouvrir', self.open_db, 'Ctrl+O')
+        aboutAction = self._add_action('à propos', self.about_d)
 
         self.db_actions = {}
-        self.db_actions['delRow'] = self.add_action('&Supprimer la ligne', self.remove_current_row)
-        self.db_actions['addForm'] = self.add_action('&Pièce comptable', self.add_piece_comptable)
-        self.db_actions['addFournisseur'] = self.add_action('&Fournisseur', self.addFournisseur)
-        self.db_actions['addCodeCompta'] = self.add_action('&Code compta', self.addCodeCompta)
-        self.db_actions['addInput'] = self.add_action("Entrée d'argent", self.add_input)
-        self.db_actions['setInfos'] = self.add_action('Editer les infos du centre', self.set_infos)
-        self.db_actions['editPiece'] = self.add_action('Editer la piece', self.edit_piece)
-        self.db_actions['ViewRapport'] = self.add_action('Rapport', self.viewRapport)
-        self.db_actions['exportPdf'] = self.add_action('Exporter un rapport PDF', self.export_pdf)
-        self.db_actions['exportXlsx'] = self.add_action('Exporter un fichier Excel', self.export_excel)
-        self.db_actions['close'] = self.add_action('&Fermer', self.close_db, 'Ctrl+W')
+        self.db_actions['delRow'] = self._add_action('&Supprimer la ligne', self.remove_current_row)
+        self.db_actions['addForm'] = self._add_action('&Pièce comptable', self.add_piece_comptable)
+        self.db_actions['add_fournisseur'] = self._add_action('&Fournisseur', self.add_fournisseur)
+        self.db_actions['add_code_compta'] = self._add_action('&Code compta', self.add_code_compta)
+        self.db_actions['addInput'] = self._add_action("Entrée d'argent", self.add_input)
+        self.db_actions['setInfos'] = self._add_action('Editer les infos du centre', self.set_infos)
+        self.db_actions['editPiece'] = self._add_action('Editer la piece', self.edit_piece)
+        self.db_actions['ViewRapport'] = self._add_action('Rapport', self.view_rapport)
+        self.db_actions['exportPdf'] = self._add_action('Exporter un rapport PDF', self.export_pdf)
+        self.db_actions['exportXlsx'] = self._add_action('Exporter un fichier Excel', self.export_excel)
+        self.db_actions['close'] = self._add_action('&Fermer', self.close_db, 'Ctrl+W')
         
 
         fileMenu = menubar.addMenu('&Fichier')
@@ -61,8 +61,8 @@ class MainWindow(QMainWindow):
         view_menu.addAction(self.db_actions['ViewRapport'])
         addMenu = menubar.addMenu('&Ajouter')
         addMenu.addAction(self.db_actions['addForm'])
-        addMenu.addAction(self.db_actions['addFournisseur'])
-        addMenu.addAction(self.db_actions['addCodeCompta'])
+        addMenu.addAction(self.db_actions['add_fournisseur'])
+        addMenu.addAction(self.db_actions['add_code_compta'])
         addMenu.addAction(self.db_actions['addInput'])
         aideMenu = menubar.addMenu('&Aide')
         aideMenu.addAction(aboutAction)
@@ -86,13 +86,12 @@ class MainWindow(QMainWindow):
         for name, action in self.db_actions.items():
             action.setEnabled(b)
 
-    def create_tables_views(self):
+    def _create_tables_views(self):
         self.tabs = QTabWidget()
-        self.pieces_comptables_view = self.create_table_view(
+        self.pieces_comptables_view = self._create_table_view(
             self.model.tables['pieces_comptables'])
-        #self.pieces_comptables_view = self.create_table_view(self.model.filter_model)
-        self.subdivisions_view = self.create_table_view(self.model.tables['subdivisions'])
-        self.inputs_view = self.create_table_view(self.model.tables['inputs'])
+        self.subdivisions_view = self._create_table_view(self.model.tables['subdivisions'])
+        self.inputs_view = self._create_table_view(self.model.tables['inputs'])
         self.tabs.addTab(self.pieces_comptables_view, "Pièces comptables")
         self.tabs.addTab(self.subdivisions_view, "Subdivisions")
         self.tabs.addTab(self.inputs_view, "Entrées d'argent")
@@ -110,7 +109,7 @@ class MainWindow(QMainWindow):
         self.right_col.setLayout(layout)
         self.right_dock.setWidget(self.right_col)
 
-    def create_table_view(self, model):
+    def _create_table_view(self, model):
         view = QTableView()
         view.setModel(model)
         view.setItemDelegate(QSqlRelationalDelegate())
@@ -119,14 +118,14 @@ class MainWindow(QMainWindow):
         view.setEditTriggers(QAbstractItemView.NoEditTriggers)
         return view
 
-    def add_action(self, name, function_name, shortcut=None):
+    def _add_action(self, name, function_name, shortcut=None):
         action = QAction(name, self)
         if shortcut:
             action.setShortcut(shortcut)
         action.triggered.connect(function_name)
         return action
 
-    def viewRapport(self):
+    def view_rapport(self):
         RapportDialog(self)
 
     def remove_current_row(self):
@@ -188,7 +187,7 @@ class MainWindow(QMainWindow):
         self.model.connect_db(db_path)
         self.statusBar().showMessage('Connecté sur : '+db_path)
         self.config.setValue("lastdbpath", db_path)
-        self.create_tables_views()
+        self._create_tables_views()
         self.enable_db_actions(True)
 
     def set_infos(self):
@@ -228,7 +227,7 @@ class MainWindow(QMainWindow):
         self.piece_comptable = PieceComptable(self)
         self.piece_comptable.show()
 
-    def addFournisseur(self):
+    def add_fournisseur(self):
         name, ok = QInputDialog.getText(self, 'Fournisseur',
             'Nom du fournisseur:')
         if ok and name != "":
@@ -240,7 +239,7 @@ class MainWindow(QMainWindow):
             else:
                 QMessageBox.warning(self, "Erreur", "Erreur de requette inconnue!")
 
-    def addCodeCompta(self):
+    def add_code_compta(self):
         name, code, ok = CodeComptaDialog.getCode()
         if ok and name != "":
             datas = {'code':code, 'nom':name}
@@ -253,15 +252,6 @@ class MainWindow(QMainWindow):
 
     def about_d(self):
         QMessageBox.information(self, "Diabolik Compta","version 0.0.2")
-
-class Thread(QThread):
-    def __init__(self, function, *args):
-        super(Thread, self).__init__()
-        self.function = function
-        self.args = args
-    def run(self):
-        self.function(*self.args)
-        self.finished.emit()
 
 app = QApplication(sys.argv)
 translator = QTranslator()
