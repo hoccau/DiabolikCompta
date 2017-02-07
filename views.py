@@ -415,8 +415,10 @@ class RapportDialog(QDialog):
         layout = QFormLayout()
         box1 = QGroupBox(titre, parent=self)
         for k, v in list(dic.items()):
+            v = round(v, 2)
             layout.addRow(k+":", QLabel(str(v)+"€"))
-        layout.addRow("Total:", QLabel(str(self.parent.model.get_total())+"€"))
+        total = round(self.parent.model.get_total(), 2)
+        layout.addRow("Total:", QLabel(str(total)+"€"))
         box1.setLayout(layout)
         return box1
 
