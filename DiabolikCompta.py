@@ -215,7 +215,7 @@ class MainWindow(QMainWindow):
         filename, _format = QFileDialog.getSaveFileName(
             self, "Exporter une feuille Excel", None, 'XLSX(*.xlsx)')
         if filename:
-            if filename[-4:] != '.xlsx':
+            if filename[-5:] != '.xlsx':
                 filename += '.xlsx'
             import export_xlsx
             export_xlsx.create_xlsx(filename, model=self.model)
