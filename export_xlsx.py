@@ -28,7 +28,7 @@ def create_xlsx(filename='foo.xlsx', model=None):
 
     feuille2 = classeur.add_worksheet("Pièces comptables")
     names = ['id','fournisseur','date','total','moyen de payement']
-    write_sheet(
+    write_pieces_sheet(
         names = names,
         array = model.get_pieces_comptables(),
         feuille = feuille2,
@@ -48,6 +48,24 @@ def create_xlsx(filename='foo.xlsx', model=None):
         names = names, 
         array = subdivisions,
         feuille = feuille3,
+        workbook = classeur
+        )
+
+    feuille4 = classeur.add_worksheet("Totaux par catégorie")
+    totaux = model.get_totals_by_codecompta()
+    write_sheet(
+        names = list(totaux.keys()), 
+        array = [list(totaux.values())],
+        feuille = feuille4,
+        workbook = classeur
+        )
+    
+    feuille5 = classeur.add_worksheet("Totaux moyens de payement")
+    totaux = model.get_totals_by_payement()
+    write_sheet(
+        names = list(totaux.keys()), 
+        array = [list(totaux.values())],
+        feuille = feuille5,
         workbook = classeur
         )
 
@@ -100,6 +118,12 @@ def write_infos_sheet(names=[], infos_dic={}, feuille=None, workbook=None):
 
 @header
 def write_sheet(names=[], array=[], feuille=None, workbook=None):
+    for i, row in enumerate(array):
+        for j, cell in enumerate(row):
+            feuille.write(i+1, j, cell)
+    
+@header
+def write_pieces_sheet(names=[], array=[], feuille=None, workbook=None):
     date_format = workbook.add_format({'num_format': 'd mmmm yyyy'})
     for i, row in enumerate(array):
         for j, cell in enumerate(row):
