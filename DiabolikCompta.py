@@ -143,6 +143,7 @@ class MainWindow(QMainWindow):
             self.model.tables['pieces_comptables'].removeRow(row)
             self.model.tables['pieces_comptables'].select()
             self.model.tables['subdivisions'].select()
+            [table.select() for table in self.model.general_results.values()]
 
     def open_db(self):
         file_name = QFileDialog.getOpenFileName(self, 'Open File')
