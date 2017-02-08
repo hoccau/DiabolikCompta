@@ -166,22 +166,30 @@ class MainWindow(QMainWindow):
         code, ok = QInputDialog.getInt(self, 'Code centre',
             'Entrez le code de votre centre:')
         if ok and code != '':
-            db_name, format_ = QFileDialog.getSaveFileName(
-                self,
-                "Enregistrer une nouvelle base",
-                None,
-                'DB(*.db)')
-            if db_name:
-                if db_name.split('.')[-1] != 'db':
-                    db_name += '.db'
+            #db_name, format_ = QFileDialog.getSaveFileName(
+            #    self,
+            #    "Enregistrer une nouvelle base",
+            #    None,
+            #    'DB(*.db)')
+            user_path = os.path.expanduser('~')
+            user_folder_name = "DiabolikCompta"
+            if not os.path.isdir(os.path.join(user_path, user_folder_name)):
+                os.mkdir(os.path.join(user_path, user_folder_name))
+            path = os.path.join(
+                user_path,
+                'DiabolikCompta',
+                'centre'+str(code)+'.db')
+            if path:
+                if path.split('.')[-1] != 'db':
+                    path += '.db'
                 progress_dialog = WaitingDialog(
                     self,
                     self.model,
-                    db_name,
+                    path,
                     code)
                 progress_dialog.resize(200, 90)
                 if progress_dialog.exec_():
-                    self.connect_db(db_name)
+                    self.connect_db(path)
                     self.set_infos()
 
     def connect_db(self, db_path):
