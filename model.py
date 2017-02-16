@@ -117,7 +117,11 @@ class Model(QSqlQueryModel):
 
     def connect_db(self, db_name):
         self.db.setDatabaseName(db_name)
-        self.db.open()
+        ok = self.db.open()
+        if ok:
+            print("Database open.")
+        else:
+            return False
         self.query = QSqlQuery()
         self.exec_("PRAGMA foreign_keys = ON")
 
@@ -150,6 +154,7 @@ class Model(QSqlQueryModel):
                 - (SELECT sum(subdivisions.prix) FROM subdivisions)',
                 'Argent Disponible')
                 }
+        return True
 
     def get_(self, cols=[], table="", qfilter=""):
         """ Return an array with records """

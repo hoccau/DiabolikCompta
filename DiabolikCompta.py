@@ -12,7 +12,7 @@ from PyQt5.QtGui import QIcon
 from model import Model
 from views import *
 from PyQt5.QtSql import QSqlRelationalDelegate
-from PyQt5.QtCore import Qt, QTranslator, QLocale, QLibraryInfo, QSettings
+from PyQt5.QtCore import Qt, QTranslator, QLocale, QLibraryInfo, QSettings, QMimeDatabase
 import sys, os, configparser
 
 class MainWindow(QMainWindow):
@@ -193,11 +193,18 @@ class MainWindow(QMainWindow):
                     self.set_infos()
 
     def connect_db(self, db_path):
-        self.model.connect_db(db_path)
-        self.statusBar().showMessage('Connecté sur : '+db_path)
-        self.config.setValue("lastdbpath", db_path)
-        self._create_tables_views()
-        self.enable_db_actions(True)
+        mime_db = QMimeDatabase()
+        mime = mime_db.mimeTypeForFile(db_path)
+        if mime.name() != 'application/x-sqlite3':
+            QMessageBox.warning(self, "Erreur", "Mauvais format de fichier")
+            return False
+        else:
+            self.model.connect_db(db_path)
+            self.statusBar().showMessage('Connecté sur : '+db_path)
+            self.config.setValue("lastdbpath", db_path)
+            self._create_tables_views()
+            self.enable_db_actions(True)
+            return True
 
     def set_infos(self):
         InfosCentreDialog(self)
