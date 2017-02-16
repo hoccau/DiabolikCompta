@@ -109,9 +109,8 @@ class PieceComptable(QDialog):
     def get_total_subdivisions_price(self):
         total = 0
         for subdivision in self.subdivisions:
-            print('sub price:', subdivision.prix.text())
             total += float(subdivision.prix.text())
-        return total
+        return round(total, 2)
             
     def all_subdivisions_valid(self):
         for subdivision in self.subdivisions:
