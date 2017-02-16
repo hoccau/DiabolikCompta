@@ -146,7 +146,11 @@ class MainWindow(QMainWindow):
             [table.select() for table in self.model.general_results.values()]
 
     def open_db(self):
-        file_name = QFileDialog.getOpenFileName(self, 'Open File')
+        file_name = QFileDialog.getOpenFileName(
+            self,
+            'Ouvrir un fichier',
+            "",
+            "Bases de données (*.db)")
         if file_name[0]:
             self.connect_db(file_name[0])
 
