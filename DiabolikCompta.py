@@ -271,7 +271,7 @@ class MainWindow(QMainWindow):
         res = AddInputDialog(self)
 
     def about_d(self):
-        QMessageBox.information(self, "Diabolik Compta","version 0.0.3")
+        QMessageBox.information(self, "Diabolik Compta","version 0.0.4")
 
 app = QApplication(sys.argv)
 translator = QTranslator()
