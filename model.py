@@ -353,11 +353,23 @@ class Model(QSqlQueryModel):
         return self._row2array(6)
 
     def get_subdivisions_for_export(self):
-        self.exec_("SELECT piece_comptable_id, fournisseurs.nom, pieces_comptables.Date, prix, code_compta_id\
+        self.exec_("SELECT\
+        piece_comptable_id,\
+        pieces_comptables.Date,\
+        fournisseurs.nom,\
+        designation,\
+        code_compta_id,\
+        codecompta.nom,\
+        subdivisions.code_analytique_id,\
+        prix,\
+        type_payement.NOM\
         FROM subdivisions\
         INNER JOIN pieces_comptables ON pieces_comptables.id = piece_comptable_id\
-        INNER JOIN fournisseurs ON fournisseurs.id = pieces_comptables.Fournisseur_id")
-        return self._row2array(5)
+        INNER JOIN fournisseurs ON fournisseurs.id = pieces_comptables.Fournisseur_id\
+        INNER JOIN codecompta ON code_compta_id = codecompta.code\
+        INNER JOIN type_payement ON typepayement_id = type_payement.id"
+        )
+        return self._row2array(9)
 
     def _row2array(self, nbr_col):
         result = []

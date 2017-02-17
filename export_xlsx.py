@@ -7,159 +7,86 @@ import datetime
 
 def create_xlsx(filename='foo.xlsx', model=None):
     classeur = Workbook(filename)
-    bold = classeur.add_format({'bold': True})
 
-    feuille1 = classeur.add_worksheet("Informations diverses")
-    infos_centre = model.get_infos()
+    header_format = classeur.add_format({
+        'bold':True,
+        'align':'center',
+        'font_color':'#ffffff',
+        'bg_color':'#ee2527',
+        'border':1,
+        'shrink':True
+        })
+    data_format = classeur.add_format({'border':1})
+    date_format = classeur.add_format({'num_format': 'd mmmm yyyy','border':1})
+    
+    feuille = classeur.add_worksheet("Grand livre comptable")
     names = [
-        "Centre",
-        "Nom du directeur",
-        "Lieu du centre",
-        "Nombre d'enfants",
-        "Début du séjour",
-        "Fin du séjour"
+        ["Centre","centre"],
+        ["Nom du directeur","directeur_nom"],
+        ["Lieu du centre","place"],
+        ["Nombre d'enfants","nombre_enfants"],
+        ["Début du séjour","startdate"],
+        ["Fin du séjour", "enddate"]
         ]
-    write_infos_sheet(
-        names = names,
-        infos_dic = infos_centre,
-        feuille = feuille1,
-        workbook = classeur
-        )
+    infos = model.get_infos()
+    debut, fin = [from_iso_date(infos[k]) for k in ['startdate', 'enddate']]
+    debut, fin = [datetime.datetime.strftime(i, '%d/%m/%Y') for i in [debut, fin]]
+    H1 = infos['centre'] + ' (direction : ' + infos['directeur_nom'] + ')'
+    H2 = 'Du '+debut + ' au '+fin+' à ' + infos['place'] + '. Avec ' + str(infos['nombre_enfants']) + ' enfants.'
+    chapeau_options = {
+        'width':600,
+        'height':50,
+        'font':{'color':'#ffffff'},
+        'fill':{'color':'#ee2527'},
+        }
+    feuille.insert_textbox('A1', H1+'\n'+H2, chapeau_options)
 
-    feuille2 = classeur.add_worksheet("Pièces comptables")
-    names = ['id','fournisseur','date','total','moyen de payement']
-    write_pieces_sheet(
-        names = names,
-        array = model.get_pieces_comptables(),
-        feuille = feuille2,
-        workbook = classeur
-        )
+    feuille.set_column('A:A', 6)
+    feuille.set_column('B:B', 15)
+    feuille.set_column('C:C', 15)
+    feuille.set_column('D:D', 17)
+    feuille.set_column('F:F', 17)
+    feuille.set_column('J:J', 15)
 
-    feuille3 = classeur.add_worksheet("Subdivisions comptables")
+    line_offset = 3
+    
+    ### Chapeau ###
     names = [
-        'Numéro de pièce',
-        'Fournisseur',
+        'N° pièce',
         'Date',
+        "Fournisseur",
+        "Objet",
+        "N° comptable",
+        'Libellé comptable',
+        'Code analytique',
         'Montant',
         'Cumul',
-        'Code comptable']
+        'Moyen de payement']
+    for i, name in enumerate(names):
+        feuille.write(line_offset - 1, i, name, header_format)
+    
+    ### Datas ###
     subdivisions = model.get_subdivisions_for_export()
-    write_subdivisions_sheet(
-        names = names, 
-        array = subdivisions,
-        feuille = feuille3,
-        workbook = classeur
-        )
-
-    feuille4 = classeur.add_worksheet("Totaux par catégorie")
-    totaux = model.get_totals_by_codecompta()
-    write_sheet(
-        names = list(totaux.keys()), 
-        array = [list(totaux.values())],
-        feuille = feuille4,
-        workbook = classeur
-        )
-    
-    feuille5 = classeur.add_worksheet("Totaux moyens de payement")
-    totaux = model.get_totals_by_payement()
-    write_sheet(
-        names = list(totaux.keys()), 
-        array = [list(totaux.values())],
-        feuille = feuille5,
-        workbook = classeur
-        )
-
-    classeur.close()
-
-def header(f):
-    def wrapper(*args, **kwargs):
-        header_format = kwargs['workbook'].add_format({
-            'bold':True,
-            'text_wrap':True,
-            'align':'center',
-            'font_color':'#ffffff',
-            'bg_color':'#ee2527',
-            'border':1
-            })
-        data_format = kwargs['workbook'].add_format({
-            'border':1
-            })
-        nbr_cols = len(kwargs['names'])
-        kwargs['feuille'].set_column(0, nbr_cols - 1, 15, data_format)
-        kwargs['feuille'].set_row(0, 30)
-        for i, name in enumerate(kwargs['names']):
-            kwargs['feuille'].write(0, i, name, header_format)
-        response = f(*args, **kwargs) #decorated function
-    return wrapper
-
-@header
-def write_infos_sheet(names=[], infos_dic={}, feuille=None, workbook=None):
-    ordered = [
-        'centre',
-        'directeur_nom',
-        'nombre_enfants',
-        'place',
-        'startdate',
-        'enddate'
-        ]
-    i = 0
-    print(infos_dic.items())
-    date_format = workbook.add_format({'num_format': 'd mmmm yyyy'})
-    for k in ordered:
-        if k == 'startdate' or k == 'enddate':
-            date = from_iso_date(infos_dic[k])
-            if date:
-                feuille.write_datetime(1,i, date, date_format)
-            else:
-                feuille.write(1, i, "Non renseigné")
+    for i, record in enumerate(subdivisions):
+        feuille.write(i+line_offset, 0, record[0], data_format) # n° piece
+        date = from_iso_date(record[1])
+        feuille.write_datetime(i+line_offset, 1, date, date_format)
+        for j in range(2, 8): 
+            feuille.write(i+line_offset, j, record[j], data_format)
+        if i == 0:
+            feuille.write_formula(i + line_offset, 8, '= H4', data_format)
         else:
-            feuille.write(1, i, infos_dic[k])
-        i += 1
-
-@header
-def write_sheet(names=[], array=[], feuille=None, workbook=None):
-    for i, row in enumerate(array):
-        for j, cell in enumerate(row):
-            feuille.write(i+1, j, cell)
-    
-@header
-def write_pieces_sheet(names=[], array=[], feuille=None, workbook=None):
-    date_format = workbook.add_format({'num_format': 'd mmmm yyyy'})
-    for i, row in enumerate(array):
-        for j, cell in enumerate(row):
-            if j == 2:
-                date = from_iso_date(cell)
-                if date:
-                    feuille.write_datetime(i+1, j, date, date_format)
-                else:
-                    feuille.write(1, i, "Non renseigné")
-            else:
-                feuille.write(i+1, j, cell)
-
-@header
-def write_subdivisions_sheet(names=[], array=[], feuille=None, workbook=None):
-    for i, row in enumerate(array):
-        j, idx, last = 0, 0, 6
-        while j < last:
-            if j == 4:
-                if i == 0:
-                    feuille.write_formula(i+1, j, '= D2')
-                else:
-                    last_cumul = xl_rowcol_to_cell(i, j)
-                    montant = xl_rowcol_to_cell(i+1, j-1)
-                    feuille.write_formula(i+1, j, '=' + last_cumul + '+' + montant)
-            elif j == 2:
-                date_format = workbook.add_format({'num_format': 'd mmmm yyyy'})
-                date = from_iso_date(row[idx])
-                if date:
-                    feuille.write_datetime(i+1, j, date, date_format)
-                else:
-                    feuille.write(i+1, j, "Non renseigné")
-                idx += 1
-            else:
-                feuille.write(i+1, j, row[idx])
-                idx += 1
-            j += 1
+            last_cumul = xl_rowcol_to_cell(i+line_offset - 1, 8)
+            montant = xl_rowcol_to_cell(i+line_offset, 7)
+            feuille.write_formula(
+                i+line_offset,
+                8,
+                '=' + last_cumul + '+' + montant,
+                data_format
+                )
+        feuille.write(i+line_offset, 9, record[8], data_format) #moyen payement
+   
+    [feuille.set_row(i, 30) for i in range(3)] # first row to 30 height
 
 def from_iso_date(date):
     try:
