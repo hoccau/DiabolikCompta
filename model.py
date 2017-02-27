@@ -69,7 +69,7 @@ class Model(QSqlQueryModel):
             VALUES ("+code+", "+str(code_centre)+")")
         for code in codes_compta_vehicules:
             self.exec_("INSERT INTO codecompta (code, nom, code_analytique_id)\
-            VALUES ("+code+", 600)")
+            VALUES ("+code+", 100)")
 
         self.exec_("CREATE TABLE type_payement (\
         id integer PRIMARY KEY,\
