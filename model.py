@@ -75,7 +75,7 @@ class Model(QSqlQueryModel):
         id integer PRIMARY KEY,\
         NOM varchar(20)\
         )")
-        moyens_de_payement = ['Chèque','Espèces','Carte Banquaire','Autre']
+        moyens_de_payement = ['Chèque','Espèces','Carte Bancaire','Autre']
         for moyen in moyens_de_payement:
             self.exec_("INSERT INTO type_payement (NOM) VALUES ('"+moyen+"')")
         self.exec_("CREATE TABLE code_analytique (\
