@@ -1,7 +1,10 @@
 TODO
 
- * date en format francophone (delegates...)
- * Export Excel à ameliorer
- * barre de défilement pour plein de subdivisions
- * Enregistrer -> Focus par défaut dans la pièce comptable
- * logging support 
+ * verifier que lorsqu'on insert des guillements, ça fasse pas planter la requete
+ * provenance des entrées d'argent
+ * entrée d'argent dans les exports PDF et XLSX
+ * date en format francophone (delegates... ou dans le model)
+ * barre de défilement pour plein de subdivisions (facultatif)
+ * Enregistrer -> Focus par défaut dans la pièce comptable 
+ * logging support
+ * base de donnée séparée, pour qu'il puisse être utilisé par d'autres structures 

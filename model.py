@@ -91,6 +91,7 @@ class Model(QSqlQueryModel):
         Date varchar(10),\
         total real,\
         TypePayement_id int NOT NULL,\
+        cheque_number int,\
         FOREIGN KEY (Fournisseur_id) REFERENCES fournisseurs(id) ON DELETE NO ACTION,\
         FOREIGN KEY (TypePayement_id) REFERENCES type_payement(id) ON DELETE NO ACTION\
         )")
@@ -190,6 +191,12 @@ class Model(QSqlQueryModel):
             return self.query.value(0)
 
     def add(self, datas, table):
+        """ add a record to a table. Return True if the query succeed.
+
+        :Args:
+            datas: dict of col_name:value datas
+            table: table to add datas
+        """
         col_title = ', '.join([str(i) for i in list(datas.keys())])
         values = []
         for value in list(datas.values()):
@@ -379,7 +386,7 @@ class Model(QSqlQueryModel):
 
 
     def get_piece_by_id(self, id_):
-        self.exec_("SELECT fournisseurs.nom, date, total, type_payement.nom\
+        self.exec_("SELECT fournisseurs.nom, date, total, type_payement.nom, cheque_number\
         FROM pieces_comptables\
         INNER JOIN fournisseurs ON fournisseurs.id = Fournisseur_id\
         INNER JOIN type_payement ON type_payement.id = typePayement_id\
@@ -390,6 +397,7 @@ class Model(QSqlQueryModel):
             result['date'] = self.query.value(1)
             result['total'] = self.query.value(2)
             result['type_payement'] = self.query.value(3)
+            result['cheque_number'] = self.query.value(4)
         self.exec_("SELECT id, designation, codecompta.nom, code_analytique.nom, prix\
         FROM subdivisions\
         INNER JOIN codecompta ON codecompta.CODE = subdivisions.code_compta_id\

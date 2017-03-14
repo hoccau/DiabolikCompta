@@ -17,7 +17,8 @@ class PieceComptable(QDialog):
         add_fournisseur = QPushButton('Ajouter')
         self.date = QCalendarWidget()
         self.price = QLineEdit()
-        self.typePayement = QComboBox()
+        self.type_payement = QComboBox()
+        self.cheque_number = QLineEdit()
         self.submitButton = QPushButton("Enregistrer")
         quitButton = QPushButton("Annuler")
 
@@ -25,13 +26,18 @@ class PieceComptable(QDialog):
         self.refresh_typePayement()
         regexp = QRegExp('\d[\d\.]+')
         self.price.setValidator(QRegExpValidator(regexp))
+        regexp = QRegExp('^([0-9]{6})\d$') # 7 digits
+        self.cheque_number.setValidator(QRegExpValidator(regexp))
+        self.cheque_number.setPlaceholderText('Numéro')
+        self.cheque_number.setFixedWidth(80)
 
         self.grid = QGridLayout()
         self.piece_layout = QFormLayout(self)
 
-        price_box = QHBoxLayout()
-        price_box.addWidget(self.price)
-        price_box.addWidget(self.typePayement)
+        self.price_box = QHBoxLayout()
+        self.price_box.addWidget(self.price)
+        self.price_box.addWidget(self.type_payement)
+        self.price_box.addWidget(self.cheque_number)
 
         fournisseurs_box = QHBoxLayout()
         fournisseurs_box.addWidget(self.fournisseur, stretch=10)
@@ -51,7 +57,7 @@ class PieceComptable(QDialog):
         box_subdivisions.setLayout(self.subdivisions_grid)
 
         self.piece_layout.addRow(QLabel("Subdivisions:"), box_subdivisions)
-        self.piece_layout.addRow(QLabel("Prix total:"), price_box)
+        self.piece_layout.addRow(QLabel("Prix total:"), self.price_box)
         buttons_box = QHBoxLayout()
         buttons_box.addWidget(self.submitButton)
         buttons_box.addWidget(quitButton)
@@ -65,6 +71,7 @@ class PieceComptable(QDialog):
         add_button.clicked.connect(self.add_subdivision)
         quitButton.clicked.connect(self.reject)
         add_fournisseur.clicked.connect(self.add_fournisseur)
+        self.type_payement.currentTextChanged.connect(self.refresh_cheque_number)
         
         if not id_:
             self.add_subdivision()
@@ -84,7 +91,8 @@ class PieceComptable(QDialog):
         self.fournisseur.setCurrentText(piece['fournisseur'])
         self.date.setSelectedDate(QDate.fromString(piece['date'],'yyyy-MM-dd'))
         self.price.insert(str(piece['total']))
-        self.typePayement.setCurrentText(piece['type_payement'])
+        self.type_payement.setCurrentText(piece['type_payement'])
+        self.cheque_number.setText(str(piece['cheque_number']))
         for subdivision_datas in piece['subdivisions']:
             self.add_subdivision(subdivision_datas)
 
@@ -128,6 +136,12 @@ class PieceComptable(QDialog):
             QMessageBox.warning(self, "Erreur", "Il faut entrer un nom de fournisseur")
         elif self.price.text() == "":
             QMessageBox.warning(self, "Erreur", "Il faut entrer un prix total")
+        elif self.type_payement.currentText() == 'Chèque'\
+            and len(self.cheque_number.text()) < 7:
+                QMessageBox.warning(
+                    self,
+                    "Erreur", "Il faut entrer un numéro de chèque valide"
+                    )
         elif len(self.subdivisions) < 1:
             QMessageBox.warning(self, "Erreur", "Il faut entrer au minimum une subdivision")
         elif not self.all_subdivisions_valid():
@@ -145,7 +159,7 @@ class PieceComptable(QDialog):
         record = {}
         fournisseur_name = self.fournisseur.currentText()
         f_id = self.model.get_one('id','fournisseurs','nom', fournisseur_name)
-        type_payement_name = self.typePayement.currentText()
+        type_payement_name = self.type_payement.currentText()
         p_id = self.model.get_one('id','type_payement','nom', type_payement_name)
         
         record["id"] = str(self.id)
@@ -153,6 +167,7 @@ class PieceComptable(QDialog):
         record["date"] = self.date.selectedDate().toString('yyyy-MM-dd')
         record["total"] = self.price.text()
         record["typePayement_id"] = p_id
+        record["cheque_number"] = self.cheque_number.text()
         if self.new_record:
             self.model.add(record, 'pieces_comptables')
         else:
@@ -169,9 +184,16 @@ class PieceComptable(QDialog):
             self.fournisseur.addItem(fournisseur[0])
     
     def refresh_typePayement(self):
-        self.typePayement.clear()
-        for typePayement in self.model.get_(['nom'],'type_payement'):
-            self.typePayement.addItem(typePayement[0])
+        self.type_payement.clear()
+        for type_payement in self.model.get_(['nom'],'type_payement'):
+            self.type_payement.addItem(type_payement[0])
+
+    def refresh_cheque_number(self, text_value):
+        if text_value == 'Chèque':
+            self.cheque_number.show()
+        else:
+            self.cheque_number.clear()
+            self.cheque_number.hide()
 
 class SubdivisionView():
     def __init__(self, parent=None, index=None, codes_analytiques=None, datas=None):
