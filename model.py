@@ -369,14 +369,15 @@ class Model(QSqlQueryModel):
         codecompta.nom,\
         subdivisions.code_analytique_id,\
         prix,\
-        type_payement.NOM\
+        type_payement.NOM,\
+        cheque_number\
         FROM subdivisions\
         INNER JOIN pieces_comptables ON pieces_comptables.id = piece_comptable_id\
         INNER JOIN fournisseurs ON fournisseurs.id = pieces_comptables.Fournisseur_id\
         INNER JOIN codecompta ON code_compta_id = codecompta.code\
         INNER JOIN type_payement ON typepayement_id = type_payement.id"
         )
-        return self._row2array(9)
+        return self._row2array(10)
 
     def _row2array(self, nbr_col):
         result = []

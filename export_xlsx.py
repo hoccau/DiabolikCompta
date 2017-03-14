@@ -61,7 +61,8 @@ def create_xlsx(filename='foo.xlsx', model=None):
         'Code analytique',
         'Montant',
         'Cumul',
-        'Moyen de payement']
+        'Moyen de payement',
+        'N° chèque']
     for i, name in enumerate(names):
         feuille.write(line_offset - 1, i, name, header_format)
     
@@ -85,6 +86,7 @@ def create_xlsx(filename='foo.xlsx', model=None):
                 data_format
                 )
         feuille.write(i+line_offset, 9, record[8], data_format) #moyen payement
+        feuille.write(i+line_offset, 10, record[9], data_format) #numero de chèque
    
     [feuille.set_row(i, 30) for i in range(3)] # first row to 30 height
 
