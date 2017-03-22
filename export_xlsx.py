@@ -48,7 +48,7 @@ def create_xlsx(filename='foo.xlsx', model=None):
     feuille.set_column('C:C', 15)
     feuille.set_column('D:D', 17)
     feuille.set_column('F:F', 17)
-    feuille.set_column('J:J', 15)
+    feuille.set_column('K:K', 15)
 
     line_offset = 3
     
@@ -63,6 +63,7 @@ def create_xlsx(filename='foo.xlsx', model=None):
         'Code analytique',
         'Montant',
         'Cumul',
+        'Total pièce',
         'Moyen de payement',
         'N° chèque']
     for i, name in enumerate(names):
@@ -89,8 +90,9 @@ def create_xlsx(filename='foo.xlsx', model=None):
                 '= ' + last_cumul + '+' + montant,
                 price_format,
                 )
-        feuille.write(i+line_offset, 9, record[8], data_format) #moyen payement
-        feuille.write(i+line_offset, 10, record[9], data_format) #numero de chèque
+        feuille.write(i+line_offset, 9, record[8], price_format) #total piece
+        feuille.write(i+line_offset, 10, record[9], data_format) #moyen payement
+        feuille.write(i+line_offset, 11, record[10], data_format) #numero de chèque
    
     [feuille.set_row(i, 30) for i in range(3)] # first row to 30 height
 
