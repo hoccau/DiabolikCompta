@@ -96,6 +96,43 @@ def create_xlsx(filename='foo.xlsx', model=None):
    
     [feuille.set_row(i, 30) for i in range(3)] # first row to 30 height
 
+    ### Sheet Livre de caisse ###
+    line_offset = 4
+    feuille_caisse = classeur.add_worksheet("Livre de caisse")
+    feuille_caisse.insert_textbox(
+        'A1',
+        "Livre de caisse",
+        chapeau_options)
+    feuille_caisse.merge_range('A4:C4', "Retraits", header_format)
+    for i, h in enumerate(['id', 'date', 'montant']):
+        feuille_caisse.write(line_offset, i, h, header_format)
+    retraits = model.get_(
+        ['id', 'date', 'montant'], 'retraits_liquide')
+    for i, val in enumerate(retraits):
+        feuille_caisse.write(line_offset + i + 1, 0, val[0], data_format)
+        feuille_caisse.write(line_offset + i + 1, 1, from_iso_date(val[1]), date_format)
+        feuille_caisse.write(line_offset + i + 1, 2, val[2], price_format)
+        
+    feuille_caisse.write_datetime(i+line_offset, 1, date, date_format)
+
+    feuille_caisse.merge_range('E4:G4', "Payements en liquide", header_format)
+    payements_cash = model.get_(
+        ['id', 'date', 'total'], 'pieces_comptables', 'typePayement_id = 2')
+    for i, h in enumerate(['N° Pièce', 'date', 'montant']):
+        feuille_caisse.write(line_offset, i+4, h, header_format)
+    for i, val in enumerate(payements_cash):
+        feuille_caisse.write(line_offset + i + 1, 4, val[0], data_format)
+        feuille_caisse.write(line_offset + i + 1, 5, from_iso_date(val[1]), date_format)
+        feuille_caisse.write(line_offset + i + 1, 6, val[2], price_format)
+
+    query_total_du = model.general_results['Liquide_disponible'].model.query()
+    query_total_du.first()
+    feuille_caisse.write('I4', 'Total dû', header_format)
+    feuille_caisse.write('I5', query_total_du.value(0), price_format)
+    
+    feuille_caisse.set_column('B:B', 15)
+    feuille_caisse.set_column('F:F', 15)
+    
     ### Sheet Bilan du sejour ###
     feuille_bilan = classeur.add_worksheet("Bilan du séjour")
     feuille_bilan.insert_textbox(
@@ -118,12 +155,6 @@ def create_xlsx(filename='foo.xlsx', model=None):
             percent_format,
             t[1] / totals 
             )
-    #below : seems not work
-    #chart = classeur.add_chart({'type': 'line'})
-    #chart.add_series({
-    #    'values': "=$B$6:$B$9"
-    #    })
-    #feuille_bilan.insert_chart('A11', chart)
 
     feuille_bilan.merge_range('E4:G4', "Dépenses par catégorie comptable", header_format)
     for i, t in enumerate(model.get_totals_by_codecompta().items()):
