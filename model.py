@@ -145,6 +145,7 @@ class Model(QSqlQueryModel):
             ["codecompta","code","NOM",3,"Catégorie comptable"],
             ["code_analytique","code","NOM",4,"Catégorie analytique"])
         self.tables['inputs'] = InputsModel(self, self.db)
+        self.tables['retraits'] = RetraitsModel(self, self.db)
         self.qt_table_infos = InfosModel(self, self.db)
         self.qt_table_inputs = InputsModel(self, self.db)
 
@@ -161,7 +162,8 @@ class Model(QSqlQueryModel):
                 'Argent Disponible'),
             'Liquide_disponible':GeneralResultModel(
                 'SELECT (SELECT total(montant) FROM retraits_liquide)\
-                - (SELECT total(total) FROM pieces_comptables)',
+                - (SELECT total(total) FROM pieces_comptables\
+                WHERE typePayement_id = 2)',
                 'Liquide Disponible')
                 }
         return True
@@ -438,6 +440,12 @@ class InputsModel(QSqlTableModel):
     def __init__(self, parent, db):
         super(InputsModel, self).__init__(parent, db)
         self.setTable("inputs")
+        self.select()
+
+class RetraitsModel(QSqlTableModel):
+    def __init__(self, parent, db):
+        super(RetraitsModel, self).__init__(parent, db)
+        self.setTable("retraits_liquide")
         self.select()
 
 class GeneralResultModel():

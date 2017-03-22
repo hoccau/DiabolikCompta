@@ -360,6 +360,7 @@ class AddRetraitDialog(QDialog):
                 }
             self.model.add(dic,'retraits_liquide')
             self.model.general_results['Liquide_disponible'].select()
+            self.model.tables['retraits'].select()
             self.close()
 
 class CodeComptaDialog(QDialog):
