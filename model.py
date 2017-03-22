@@ -158,7 +158,11 @@ class Model(QSqlQueryModel):
             'Argent_disponible':GeneralResultModel(
                 'SELECT (SELECT total(inputs.montant) from inputs)\
                 - (SELECT total(subdivisions.prix) FROM subdivisions)',
-                'Argent Disponible')
+                'Argent Disponible'),
+            'Liquide_disponible':GeneralResultModel(
+                'SELECT (SELECT total(montant) FROM retraits_liquide)\
+                - (SELECT total(total) FROM pieces_comptables)',
+                'Liquide Disponible')
                 }
         return True
 

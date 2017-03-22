@@ -359,6 +359,7 @@ class AddRetraitDialog(QDialog):
                 'montant':float(self.montant.text()),
                 }
             self.model.add(dic,'retraits_liquide')
+            self.model.general_results['Liquide_disponible'].select()
             self.close()
 
 class CodeComptaDialog(QDialog):
