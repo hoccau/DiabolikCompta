@@ -115,6 +115,11 @@ class Model(QSqlQueryModel):
         date varchar(10),\
         montant real,\
         comment varchar(30) )")
+        self.exec_("CREATE TABLE retraits_liquide(\
+        id INTEGER PRIMARY KEY,\
+        date VARCHAR(10),\
+        montant real\
+        )")
 
     def connect_db(self, db_name):
         self.db.setDatabaseName(db_name)

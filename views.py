@@ -321,7 +321,45 @@ class AddInputDialog(QDialog):
                 'comment':self.note.toPlainText()
                 }
             self.model.add(dic,'inputs')
-            self.accept()
+            self.close()
+ 
+class AddRetraitDialog(QDialog):
+    def __init__(self, parent=None):
+        super(AddRetraitDialog, self).__init__(parent)
+
+        self.model = parent.model
+        self.setWindowTitle("Ajouter un retrait en liquide")
+
+        self.montant = QLineEdit()
+        regexp = QRegExp('\d[\d\.]+')
+        self.montant.setValidator(QRegExpValidator(regexp))
+        self.montant.setPlaceholderText("Montant")
+        self.date = QDateEdit(QDate.currentDate())
+        
+        layout = QFormLayout(self)
+        layout.addRow('date:', self.date)
+        layout.addRow('Montant:', self.montant)
+        
+        buttons = QDialogButtonBox(
+            QDialogButtonBox.Ok | QDialogButtonBox.Cancel,
+            self)
+        buttons.accepted.connect(self.submit)
+        buttons.rejected.connect(self.reject)
+        layout.addRow('',buttons)
+
+        self.exec_()
+
+    def submit(self):
+        if self.montant.text() == '':
+            QMessageBox.warning(None, "Erreur", "Il faut entrer un montant")
+        else:
+            date = QDate.fromString(self.date.text(),'dd/MM/yyyy')
+            dic = {
+                'date':date.toString('yyyy-MM-dd'),
+                'montant':float(self.montant.text()),
+                }
+            self.model.add(dic,'retraits_liquide')
+            self.close()
 
 class CodeComptaDialog(QDialog):
     def __init__(self, parent=None):

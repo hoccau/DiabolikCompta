@@ -38,6 +38,7 @@ class MainWindow(QMainWindow):
         self.db_actions['add_fournisseur'] = self._add_action('&Fournisseur', self.add_fournisseur)
         self.db_actions['add_code_compta'] = self._add_action('&Code compta', self.add_code_compta)
         self.db_actions['addInput'] = self._add_action("Entrée d'argent", self.add_input)
+        self.db_actions['add_retrait'] = self._add_action("Retrait de liquide", self.add_retrait)
         self.db_actions['setInfos'] = self._add_action('Editer les infos du centre', self.set_infos)
         self.db_actions['editPiece'] = self._add_action('Editer la piece', self.edit_piece)
         self.db_actions['ViewRapport'] = self._add_action('Rapport', self.view_rapport)
@@ -64,6 +65,7 @@ class MainWindow(QMainWindow):
         addMenu.addAction(self.db_actions['add_fournisseur'])
         addMenu.addAction(self.db_actions['add_code_compta'])
         addMenu.addAction(self.db_actions['addInput'])
+        addMenu.addAction(self.db_actions['add_retrait'])
         aideMenu = menubar.addMenu('&Aide')
         aideMenu.addAction(aboutAction)
 
@@ -269,6 +271,9 @@ class MainWindow(QMainWindow):
 
     def add_input(self):
         res = AddInputDialog(self)
+
+    def add_retrait(self):
+        res = AddRetraitDialog(self)
 
     def about_d(self):
         QMessageBox.information(self, "Diabolik Compta","version 0.0.4")
