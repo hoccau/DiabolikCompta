@@ -150,14 +150,14 @@ class Model(QSqlQueryModel):
 
         self.general_results = {
             'chiffre_affaire':GeneralResultModel(
-                'SELECT sum(montant) FROM inputs',
+                'SELECT total(montant) FROM inputs',
                 'Total Argent Reçu'),
             'Dépenses':GeneralResultModel(
-                'SELECT sum(prix) FROM subdivisions',
+                'SELECT total(prix) FROM subdivisions',
                 'Total dépenses'),
             'Argent_disponible':GeneralResultModel(
-                'SELECT (SELECT sum(inputs.montant) from inputs)\
-                - (SELECT sum(subdivisions.prix) FROM subdivisions)',
+                'SELECT (SELECT total(inputs.montant) from inputs)\
+                - (SELECT total(subdivisions.prix) FROM subdivisions)',
                 'Argent Disponible')
                 }
         return True

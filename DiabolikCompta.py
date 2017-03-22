@@ -76,7 +76,6 @@ class MainWindow(QMainWindow):
 
         self.right_dock = QDockWidget('Informations Générales', self)
         self.right_dock.setFeatures(QDockWidget.NoDockWidgetFeatures)
-
         self.addDockWidget(Qt.RightDockWidgetArea, self.right_dock)
 
         self.setMinimumSize(1024,600)

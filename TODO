@@ -1,10 +1,8 @@
 TODO
 
- * verifier que lorsqu'on insert des guillements, ça fasse pas planter la requete
- * provenance des entrées d'argent
+ * suppressions de données!
  * entrée d'argent dans les exports PDF et XLSX
  * date en format francophone (delegates... ou dans le model)
- * mettre dans l'export XLSX le montant total de la pièce
 
 TODO LATER :)
 
