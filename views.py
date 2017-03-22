@@ -332,7 +332,7 @@ class CodeComptaDialog(QDialog):
         label_code = QLabel("Code:")
         self.code = QSpinBox()
         self.code.setMaximum(999999)
-        label_name = QLabel("Nom:")
+        label_name = QLabel("Libellé comptable:")
         self.name = QLineEdit()
 
         layout.addWidget(label_code, 0, 0)

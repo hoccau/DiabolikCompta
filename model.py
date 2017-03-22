@@ -195,18 +195,15 @@ class Model(QSqlQueryModel):
 
         :Args:
             datas: dict of col_name:value datas
-            table: table to add datas
+            table: SQL table to add datas
         """
         col_title = ', '.join([str(i) for i in list(datas.keys())])
-        values = []
-        for value in list(datas.values()):
-            if type(value) == str:
-                values.append("'"+value+"'")
-            else:
-                values.append(str(value))
-        values = ', '.join(values)
-        query = "INSERT INTO "+table+" ("+col_title+') VALUES('+values+')'
-        result = self.exec_(query)
+        values = ', '.join([':'+str(i) for i in list(datas.keys())])
+        p = self.query.prepare(
+            "INSERT INTO "+table+" ("+col_title+') VALUES('+values+')')
+        for k, v in datas.items():
+            self.query.bindValue(':'+k, v)
+        result = self.exec_()
         if result == True:
             self.refresh_model(table)
         return result
@@ -226,7 +223,7 @@ class Model(QSqlQueryModel):
             self.tables[table].select()
             print('Table '+table+' refreshed.')
         else:
-            print('Table '+table+' is not present in self.tables models')
+            print('refresh nothing: table '+table+' is not present in self.tables models')
         if table in ['inputs', 'subdivisions', 'pieces_comptables']:
             for m in self.general_results.values():
                 m.select()
@@ -334,8 +331,12 @@ class Model(QSqlQueryModel):
                 dic[field] = self.query.value(i)
             return dic
 
-    def exec_(self, request):
-        req = self.query.exec_(request)
+    def exec_(self, request=None):
+        if request:
+            req = self.query.exec_(request)
+        else:
+            req = self.query.exec_()
+            request = self.query.lastQuery()
         if DEBUG_SQL:
             print(req,":",request)
             if req == False:
