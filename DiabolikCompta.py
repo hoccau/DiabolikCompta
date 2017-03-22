@@ -99,7 +99,7 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.tabs)
 
         layout = QVBoxLayout()
-        for k, g_model in self.model.general_results.items():
+        for k, g_model in sorted(self.model.general_results.items()):
             table = QTableView()
             table.setModel(g_model.model)
             table.resizeColumnsToContents()
