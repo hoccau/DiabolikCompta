@@ -32,7 +32,7 @@ def create_xlsx(filename='foo.xlsx', model=None):
         ]
     infos = model.get_infos()
     debut, fin = [from_iso_date(infos[k]) for k in ['startdate', 'enddate']]
-    debut, fin = [datetime.datetime.strftime(i, '%d/%m/%Y') for i in [debut, fin]]
+    debut, fin = [datetime.datetime.strftime(i, '%d/%m/%Y') if i else '' for i in [debut, fin]]
     H1 = infos['centre'] + ' (direction : ' + infos['directeur_nom'] + ')'
     H2 = 'Du '+debut + ' au '+fin+' à ' + infos['place'] + '. Avec ' + str(infos['nombre_enfants']) + ' enfants.'
     chapeau_options = {
@@ -113,8 +113,6 @@ def create_xlsx(filename='foo.xlsx', model=None):
         feuille_caisse.write(line_offset + i + 1, 1, from_iso_date(val[1]), date_format)
         feuille_caisse.write(line_offset + i + 1, 2, val[2], price_format)
         
-    feuille_caisse.write_datetime(i+line_offset, 1, date, date_format)
-
     feuille_caisse.merge_range('E4:G4', "Payements en liquide", header_format)
     payements_cash = model.get_(
         ['id', 'date', 'total'], 'pieces_comptables', 'typePayement_id = 2')
