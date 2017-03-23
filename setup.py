@@ -1,7 +1,7 @@
 import sys, os
 from cx_Freeze import setup, Executable
 
-VERSION = "0.0.5"
+VERSION = "0.0.6"
 
 if sys.platform == "win32":
 	print("It is a win32 application")
