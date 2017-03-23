@@ -249,7 +249,7 @@ class MainWindow(QMainWindow):
         self.enable_db_actions(False)
         self.model.db.close()
         self.tabs.close()
-        self.right_col.close()
+        self.right_dock.close()
 
     def retrieve_db(self):
         path = self.config.value("lastdbpath")
