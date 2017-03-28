@@ -47,7 +47,7 @@ class Model(QSqlQueryModel):
             "6181, 'Documentation générale'",
             "624, 'Transport du personnel'",
             "625, 'Transport des usagers'",
-            "626, 'Postes & Télécom'",
+            "626100, 'Postes & Télécom'",
             "606510, 'Frais médicaux remboursables'"
             ]
         codes_compta_vehicules = [
@@ -62,7 +62,7 @@ class Model(QSqlQueryModel):
             "615223, 'Entretient/réparations Trafic'",
             "615224, 'Entretient/réparations Vito'",
             "615225, 'Entretient/réparations Caravel'",
-            "615226, 'Entretient/réparations Transporter'",
+            "615529, 'Entretient/réparations Transporter'",
             ]
         for code in codes_compta_centre:
             self.exec_("INSERT INTO codecompta (code, nom, code_analytique_id)\
