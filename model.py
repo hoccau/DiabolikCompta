@@ -1,8 +1,8 @@
 #!/usr/bin/python3
-# -*- coding: utf-8 -*- 
+# -*- coding: utf-8 -*-
 
 from PyQt5.QtSql import QSqlQueryModel, QSqlDatabase, QSqlQuery, QSqlRelationalTableModel, QSqlRelation, QSqlTableModel
-from PyQt5.QtCore import Qt, QDate, QAbstractItemModel, QSortFilterProxyModel
+from PyQt5.QtCore import Qt, QDate
 
 DEBUG_SQL = True
 
@@ -11,115 +11,63 @@ class Model(QSqlQueryModel):
         super(Model, self).__init__(parent)
         self.db = QSqlDatabase.addDatabase('QSQLITE')
 
-    def create_db(self, db_name, code_centre):
-        self.connect_db(db_name)
-        self.exec_("PRAGMA foreign_keys = ON")
-        self.exec_("CREATE TABLE infos(\
-        centre varchar(20),\
-        directeur_nom varchar(20),\
-        nombre_enfants int,\
-        place varchar(20),\
-        startdate varchar(10),\
-        enddate varchar(10)\
-        )")
-        self.exec_("INSERT INTO infos(\
-        centre, directeur_nom, nombre_enfants) VALUES (\
-        NULL, NULL, NULL)")
-        self.exec_("CREATE TABLE fournisseurs(\
-        id integer PRIMARY KEY,\
-        NOM varchar(20)\
-        )")
-        self.exec_("CREATE TABLE codecompta(\
-        CODE int PRIMARY KEY,\
-        NOM varchar(20),\
-        code_analytique_id int\
-        )")
-        codes_compta_centre = [
-            "60620, 'Produits entretien'",
-            "60630, 'Petit équipement petit matériel'",
-            "60640, 'Fournitures administratives'",
-            "60650, 'Produits pharmaceutiques'",
-            "6068, 'Fournitures pour activité'",
-            "60681, 'Alimentation boissons'",
-            "6112, 'Sorties extérieures & activités'",
-            "6152, 'Entretien/réparation immobilier'",
-            "6155, 'Entretien/réparation mobiler'",
-            "6181, 'Documentation générale'",
-            "624, 'Transport du personnel'",
-            "625, 'Transport des usagers'",
-            "626100, 'Postes & Télécom'",
-            "606510, 'Frais médicaux remboursables'"
-            ]
-        codes_compta_vehicules = [
-            "606161, 'Carburant Master'",
-            "606162, 'Carburant Crafter'",
-            "606163, 'Carburant Trafic'",
-            "606164, 'Carburant Vito'",
-            "606165, 'Carburant Caravel'",
-            "606166, 'Carburant Transporter'",
-            "615221, 'Entretient/réparations Master'",
-            "615222, 'Entretient/réparations Crafter'",
-            "615223, 'Entretient/réparations Trafic'",
-            "615224, 'Entretient/réparations Vito'",
-            "615225, 'Entretient/réparations Caravel'",
-            "615529, 'Entretient/réparations Transporter'",
-            ]
-        for code in codes_compta_centre:
-            self.exec_("INSERT INTO codecompta (code, nom, code_analytique_id)\
-            VALUES ("+code+", "+str(code_centre)+")")
-        for code in codes_compta_vehicules:
-            self.exec_("INSERT INTO codecompta (code, nom, code_analytique_id)\
-            VALUES ("+code+", 100)")
-
-        self.exec_("CREATE TABLE type_payement (\
-        id integer PRIMARY KEY,\
-        NOM varchar(20)\
-        )")
-        moyens_de_payement = ['Chèque','Espèces','Carte Bancaire','Autre']
-        for moyen in moyens_de_payement:
-            self.exec_("INSERT INTO type_payement (NOM) VALUES ('"+moyen+"')")
-        self.exec_("CREATE TABLE code_analytique (\
-        code INTEGER PRIMARY KEY,\
-        nom VARCHAR(20))")
-        self.exec_("INSERT INTO code_analytique (code, nom) VALUES\
-        ("+str(code_centre)+", 'Centre')")
-        self.exec_("INSERT INTO code_analytique (code, nom) VALUES\
-        (600, 'Véhicule')")
-        self.exec_("CREATE TABLE pieces_comptables(\
-        id integer PRIMARY KEY,\
-        Fournisseur_id integer NOT NULL,\
-        Date varchar(10),\
-        total real,\
-        TypePayement_id int NOT NULL,\
-        cheque_number int,\
-        FOREIGN KEY (Fournisseur_id) REFERENCES fournisseurs(id) ON DELETE NO ACTION,\
-        FOREIGN KEY (TypePayement_id) REFERENCES type_payement(id) ON DELETE NO ACTION\
-        )")
-        self.exec_("CREATE TABLE subdivisions(\
-        id INTEGER PRIMARY KEY,\
-        designation,\
-        piece_comptable_id INTEGER,\
-        code_compta_id INTEGER NOT NULL,\
-        code_analytique_id INTEGER,\
-        prix REAL,\
-        FOREIGN KEY (piece_comptable_id) REFERENCES pieces_comptables(id)\
-        ON DELETE CASCADE,\
-        FOREIGN KEY (code_compta_id) REFERENCES codecompta(code) ON DELETE NO ACTION,\
-        FOREIGN KEY (code_analytique_id) REFERENCES code_analytique(code) ON DELETE NO ACTION\
-        )")
-        self.exec_("CREATE UNIQUE INDEX idx_CODE ON codecompta (CODE)")
-        self.exec_("CREATE UNIQUE INDEX idx_NOM_FO ON fournisseurs (NOM)")
-        self.exec_("CREATE UNIQUE INDEX idx_CODE_AN ON code_analytique (CODE)")
-        self.exec_("CREATE TABLE inputs(\
-        id INTEGER PRIMARY KEY,\
-        date varchar(10),\
-        montant real,\
-        comment varchar(30) )")
-        self.exec_("CREATE TABLE retraits_liquide(\
-        id INTEGER PRIMARY KEY,\
-        date VARCHAR(10),\
-        montant real\
-        )")
+    def create_db(self, db_name, code_centre, ):
+        connected = self.connect_db(db_name)
+        if connected:
+            with open('create_db.sql', 'r') as f:
+            # NOTE: With QT SQLite driver, we cannot execute many requests in
+            # one time. So, we parse the file:
+                r = f.read()
+                # split requests and remove the last one because it's empty
+                r = r.split(';')[:-1]
+            for query in r:
+                self.exec_(query)
+            # import Diabolo codes
+            codes_compta_centre = [
+                "60620, 'Produits entretien'",
+                "60630, 'Petit équipement petit matériel'",
+                "60640, 'Fournitures administratives'",
+                "60650, 'Produits pharmaceutiques'",
+                "6068, 'Fournitures pour activité'",
+                "60681, 'Alimentation boissons'",
+                "6112, 'Sorties extérieures & activités'",
+                "6152, 'Entretien/réparation immobilier'",
+                "6155, 'Entretien/réparation mobiler'",
+                "6181, 'Documentation générale'",
+                "624, 'Transport du personnel'",
+                "625, 'Transport des usagers'",
+                "626100, 'Postes & Télécom'",
+                "606510, 'Frais médicaux remboursables'"
+                ]
+            codes_compta_vehicules = [
+                "606161, 'Carburant Master'",
+                "606162, 'Carburant Crafter'",
+                "606163, 'Carburant Trafic'",
+                "606164, 'Carburant Vito'",
+                "606165, 'Carburant Caravel'",
+                "606166, 'Carburant Transporter'",
+                "615221, 'Entretient/réparations Master'",
+                "615222, 'Entretient/réparations Crafter'",
+                "615223, 'Entretient/réparations Trafic'",
+                "615224, 'Entretient/réparations Vito'",
+                "615225, 'Entretient/réparations Caravel'",
+                "615529, 'Entretient/réparations Transporter'",
+                ]
+            # There is one code_analytique by centre (given by user)
+            self.exec_(
+                "INSERT INTO code_analytique (code, nom) VALUES\
+                ("+str(code_centre)+", 'Centre')")
+            self.exec_(
+                "INSERT INTO code_analytique (code, nom) VALUES\
+                (100, 'Véhicule')")
+            for code in codes_compta_centre:
+                self.exec_(
+                    "INSERT INTO codecompta (code, nom, code_analytique_id)\
+                    VALUES ("+code+", "+str(code_centre)+")")
+            for code in codes_compta_vehicules:
+                self.exec_(
+                    "INSERT INTO codecompta (code, nom, code_analytique_id)\
+                    VALUES ("+code+", 100)")
 
     def connect_db(self, db_name):
         self.db.setDatabaseName(db_name)
@@ -136,31 +84,32 @@ class Model(QSqlQueryModel):
         self.tables['pieces_comptables'] = TableModel(self, self.db)
         self.tables['pieces_comptables'].setTable('pieces_comptables')
         self.tables['pieces_comptables'].relational_mapping(
-            ["fournisseurs","id","NOM",1,"Fournisseur"],
-            ["type_payement","id","NOM",4,"Moyen de payement"])
-        self.tables['pieces_comptables'].setHeaderData(0, Qt.Horizontal, "Identification")
+            ["fournisseurs", "id", "NOM", 1, "Fournisseur"],
+            ["type_payement", "id", "NOM", 4, "Moyen de payement"])
+        self.tables['pieces_comptables'].setHeaderData(
+                0, Qt.Horizontal, "Identification")
         self.tables['subdivisions'] = TableModel(self, self.db)
         self.tables['subdivisions'].setTable('subdivisions')
         self.tables['subdivisions'].relational_mapping(
-            ["codecompta","code","NOM",3,"Catégorie comptable"],
-            ["code_analytique","code","NOM",4,"Catégorie analytique"])
+            ["codecompta", "code", "NOM", 3, "Catégorie comptable"],
+            ["code_analytique", "code", "NOM", 4, "Catégorie analytique"])
         self.tables['inputs'] = InputsModel(self, self.db)
         self.tables['retraits'] = RetraitsModel(self, self.db)
         self.qt_table_infos = InfosModel(self, self.db)
         self.qt_table_inputs = InputsModel(self, self.db)
 
         self.general_results = {
-            'chiffre_affaire':GeneralResultModel(
+            'chiffre_affaire': GeneralResultModel(
                 'SELECT total(montant) FROM inputs',
                 'Total Argent Reçu'),
-            'Dépenses':GeneralResultModel(
+            'Dépenses': GeneralResultModel(
                 'SELECT total(prix) FROM subdivisions',
                 'Total dépenses'),
-            'Argent_disponible':GeneralResultModel(
+            'Argent_disponible': GeneralResultModel(
                 'SELECT (SELECT total(inputs.montant) from inputs)\
                 - (SELECT total(subdivisions.prix) FROM subdivisions)',
                 'Argent Disponible'),
-            'Liquide_disponible':GeneralResultModel(
+            'Liquide_disponible': GeneralResultModel(
                 'SELECT (SELECT total(montant) FROM retraits_liquide)\
                 - (SELECT total(total) FROM pieces_comptables\
                 WHERE typePayement_id = 2)',
@@ -195,8 +144,8 @@ class Model(QSqlQueryModel):
             return self.query2dic()
 
     def get_one(self, wanted, table, qfilter_key=None, qfilter_value=None):
-        query = "SELECT " + wanted + " FROM " + table+\
-        " WHERE "+qfilter_key+" = '"+qfilter_value+"' LIMIT 1"
+        query = "SELECT " + wanted + " FROM " + table\
+            + " WHERE "+qfilter_key+" = '"+qfilter_value+"' LIMIT 1"
         self.exec_(query)
         while self.query.next():
             return self.query.value(0)
@@ -210,8 +159,9 @@ class Model(QSqlQueryModel):
         """
         col_title = ', '.join([str(i) for i in list(datas.keys())])
         values = ', '.join([':'+str(i) for i in list(datas.keys())])
-        p = self.query.prepare(
-            "INSERT INTO "+table+" ("+col_title+') VALUES('+values+')')
+        self.query.prepare(
+            "INSERT INTO " + table
+            + " (" + col_title + ') VALUES(' + values+')')
         for k, v in datas.items():
             self.query.bindValue(':'+k, v)
         result = self.exec_()
@@ -226,8 +176,8 @@ class Model(QSqlQueryModel):
         l = []
         for k, v in datas.items():
             l += [str(k) + "='" + str(v)+"'"]
-        self.exec_("UPDATE "+table+" SET "+', '.join(l)+\
-        ' WHERE '+qfilter_key+" = '"+qfilter_value+"'")
+        self.exec_("UPDATE " + table + " SET " + ', '.join(l)
+            + ' WHERE ' + qfilter_key + " = '" + qfilter_value + "'")
 
     def refresh_model(self, table):
         if table in self.tables.keys():
@@ -248,7 +198,7 @@ class Model(QSqlQueryModel):
     def get_general_totals(self):
         self.exec_('SELECT sum(total) FROM pieces_comptables')
         while self.query.next():
-            if self.query.value(0) == '' :
+            if self.query.value(0) == '':
                 return 0
             else:
                 return self.query.value(0)
@@ -264,7 +214,7 @@ class Model(QSqlQueryModel):
     def get_days(self):
         self.exec_("SELECT startdate, enddate FROM infos")
         while self.query.next():
-            start = QDate.fromString(self.query.value(0),'yyyy-MM-dd')
+            start = QDate.fromString(self.query.value(0), 'yyyy-MM-dd')
             end = QDate.fromString(self.query.value(1), 'yyyy-MM-dd')
         return start.daysTo(end)
 
@@ -285,7 +235,8 @@ class Model(QSqlQueryModel):
 
     def get_totals_by_codecompta(self):
         query = "SELECT codecompta.NOM, sum(prix) FROM subdivisions\
-        INNER JOIN codecompta ON codecompta.code = code_compta_id GROUP BY code_compta_id"
+        INNER JOIN codecompta ON codecompta.code = code_compta_id\
+        GROUP BY code_compta_id"
         self.exec_(query)
         return self.query2dic()
 
@@ -321,9 +272,9 @@ class Model(QSqlQueryModel):
 
     def set_infos(self, directeur_nom=None, directeur_prenom=None, centre=None):
         q = "UPDATE infos SET \
-        directeur_nom = '"+directeur_nom+"',\
-        directeur_prenom = '" +directeur_prenom+"',\
-        centre = '"+centre+"'"
+        directeur_nom = '" + directeur_nom + "',\
+        directeur_prenom = '" + directeur_prenom + "',\
+        centre = '" + centre + "'"
         self.exec_(q)
 
     def get_infos(self):

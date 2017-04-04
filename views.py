@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*- 
 
 from PyQt5.QtWidgets import *
-from PyQt5.QtCore import QRegExp, QDate, Qt, QThread, pyqtSignal
+from PyQt5.QtCore import QRegExp, QDate, QThread, pyqtSignal
 from PyQt5.QtGui import QRegExpValidator, QIntValidator 
 from PyQt5.QtChart import *
 
 class PieceComptable(QDialog):
-    def __init__(self, parent=None, id_ = None):
+    def __init__(self, parent=None, id_=None):
         super(PieceComptable, self).__init__(parent)
 
         self.parent = parent
@@ -48,7 +48,7 @@ class PieceComptable(QDialog):
         # Subdivisions BOX
         self.subdivision_index = 1
         self.subdivisions = []
-        self.codes_analytiques = self.model.get_dict(['nom','code'], 'code_analytique')
+        self.codes_analytiques = self.model.get_dict(['nom', 'code'], 'code_analytique')
 
         box_subdivisions = QGroupBox('', self)
         add_button = QPushButton('Ajouter une subdivision')
@@ -64,7 +64,7 @@ class PieceComptable(QDialog):
         self.piece_layout.addRow(buttons_box)
         box_piece = QGroupBox('Piece comptable', self)
         box_piece.setLayout(self.piece_layout)
-        self.grid.addWidget(box_piece, 0,0)
+        self.grid.addWidget(box_piece, 0, 0)
         self.setLayout(self.grid)
 
         self.submitButton.clicked.connect(self.verif_datas)
@@ -75,7 +75,7 @@ class PieceComptable(QDialog):
         
         if not id_:
             self.add_subdivision()
-            if self.model.get_last_id('pieces_comptables') == None:
+            if self.model.get_last_id('pieces_comptables') is None:
                 self.id = 1
             else:
                 self.id = int(self.model.get_last_id('pieces_comptables')) + 1
@@ -89,7 +89,7 @@ class PieceComptable(QDialog):
     def populate(self, id_):
         piece = self.model.get_piece_by_id(id_)
         self.fournisseur.setCurrentText(piece['fournisseur'])
-        self.date.setSelectedDate(QDate.fromString(piece['date'],'yyyy-MM-dd'))
+        self.date.setSelectedDate(QDate.fromString(piece['date'], 'yyyy-MM-dd'))
         self.price.insert(str(piece['total']))
         self.type_payement.setCurrentText(piece['type_payement'])
         self.cheque_number.setText(str(piece['cheque_number']))
@@ -143,24 +143,29 @@ class PieceComptable(QDialog):
                     "Erreur", "Il faut entrer un numéro de chèque valide"
                     )
         elif len(self.subdivisions) < 1:
-            QMessageBox.warning(self, "Erreur", "Il faut entrer au minimum une subdivision")
+            QMessageBox.warning(
+                    self, 
+                    "Erreur",
+                    "Il faut entrer au minimum une subdivision")
         elif not self.all_subdivisions_valid():
-            QMessageBox.warning(self,
+            QMessageBox.warning(
+                self,
                 "Erreur",
                 "Toutes les subdivisions ne sont pas correctement remplies")
         elif self.get_total_subdivisions_price() != float(self.price.text()):
-            QMessageBox.warning(self,
+            QMessageBox.warning(
+                self,
                 "Erreur",
                 "La somme des subdivisions est différente du prix total indiqué")
         else:
             self.submit_datas()
     
-    def submit_datas(self):    
+    def submit_datas(self):
         record = {}
         fournisseur_name = self.fournisseur.currentText()
-        f_id = self.model.get_one('id','fournisseurs','nom', fournisseur_name)
+        f_id = self.model.get_one('id', 'fournisseurs', 'nom', fournisseur_name)
         type_payement_name = self.type_payement.currentText()
-        p_id = self.model.get_one('id','type_payement','nom', type_payement_name)
+        p_id = self.model.get_one('id', 'type_payement', 'nom', type_payement_name)
         
         record["id"] = str(self.id)
         record["fournisseur_id"] = f_id
@@ -180,12 +185,12 @@ class PieceComptable(QDialog):
 
     def refresh_fournisseurs(self):
         self.fournisseur.clear()
-        for fournisseur in self.model.get_(['nom'],'fournisseurs'):
+        for fournisseur in self.model.get_(['nom'], 'fournisseurs'):
             self.fournisseur.addItem(fournisseur[0])
     
     def refresh_typePayement(self):
         self.type_payement.clear()
-        for type_payement in self.model.get_(['nom'],'type_payement'):
+        for type_payement in self.model.get_(['nom'], 'type_payement'):
             self.type_payement.addItem(type_payement[0])
 
     def refresh_cheque_number(self, text_value):
@@ -268,7 +273,7 @@ class SubdivisionView():
             datas["code_analytique_id"] = ca_id
             print(self.prix.text())
             datas["prix"] = self.prix.text()
-            if self.parent.model.add(datas,'subdivisions'):
+            if self.parent.model.add(datas, 'subdivisions'):
                 print("subdivision ", self, "submited")
             else:
                 QMessageBox.warning(self.parent, "Erreur", "Erreur de requête")
@@ -314,11 +319,11 @@ class AddInputDialog(QDialog):
         if self.montant.text() == '':
             QMessageBox.warning(None, "Erreur", "Il faut entrer un montant")
         else:
-            date = QDate.fromString(self.date.text(),'dd/MM/yyyy')
+            date = QDate.fromString(self.date.text(), 'dd/MM/yyyy')
             dic = {
-                'date':date.toString('yyyy-MM-dd'),
-                'montant':float(self.montant.text()),
-                'comment':self.note.toPlainText()
+                'date': date.toString('yyyy-MM-dd'),
+                'montant': float(self.montant.text()),
+                'comment': self.note.toPlainText()
                 }
             self.model.add(dic,'inputs')
             self.close()
@@ -345,7 +350,7 @@ class AddRetraitDialog(QDialog):
             self)
         buttons.accepted.connect(self.submit)
         buttons.rejected.connect(self.reject)
-        layout.addRow('',buttons)
+        layout.addRow('', buttons)
 
         self.exec_()
 
@@ -353,10 +358,10 @@ class AddRetraitDialog(QDialog):
         if self.montant.text() == '':
             QMessageBox.warning(None, "Erreur", "Il faut entrer un montant")
         else:
-            date = QDate.fromString(self.date.text(),'dd/MM/yyyy')
+            date = QDate.fromString(self.date.text(), 'dd/MM/yyyy')
             dic = {
-                'date':date.toString('yyyy-MM-dd'),
-                'montant':float(self.montant.text()),
+                'date': date.toString('yyyy-MM-dd'),
+                'montant': float(self.montant.text()),
                 }
             self.model.add(dic,'retraits_liquide')
             self.model.general_results['Liquide_disponible'].select()
@@ -388,7 +393,7 @@ class CodeComptaDialog(QDialog):
         layout.addWidget(buttons)
 
     @staticmethod
-    def getCode(parent = None):
+    def getCode(parent=None):
         dialog = CodeComptaDialog(parent)
         result = dialog.exec_()
         return (dialog.name.text(), dialog.code.value(), result == QDialog.Accepted)
@@ -498,18 +503,18 @@ class WaitingDialog(QDialog):
         self.layout = QVBoxLayout(self)
         self.label = QLabel("Création de la base de données...")
         self.progressBar = QProgressBar(self)
-        self.progressBar.setRange(0,1)
+        self.progressBar.setRange(0, 1)
         self.layout.addWidget(self.label)
         self.layout.addWidget(self.progressBar)
 
         self.myLongTask = CreateDB(model, db_name, code_centre)
         self.myLongTask.taskFinished.connect(self.onFinished)
 
-        self.progressBar.setRange(0,0)
+        self.progressBar.setRange(0, 0)
         self.myLongTask.start()
 
     def onFinished(self):
-        self.progressBar.setRange(0,1)
+        self.progressBar.setRange(0, 1)
         self.progressBar.setValue(1)
         self.label.setText(
             "Base de donnée "+self.db_filename + " créée.")
@@ -519,12 +524,13 @@ class WaitingDialog(QDialog):
 
 class CreateDB(QThread):
     taskFinished = pyqtSignal()
+
     def __init__(self, model, db_name, code_centre, parent=None):
         QThread.__init__(self)
         self.model = model
         self.db_name = db_name
         self.code_centre = code_centre
+
     def run(self):
         self.model.create_db(self.db_name, self.code_centre)
         self.taskFinished.emit()
-

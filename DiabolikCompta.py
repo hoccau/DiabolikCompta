@@ -6,14 +6,12 @@ Diabolik Compta
 Logiciel de comptabilité léger pour centre de vacances
 """
 
-from PyQt5 import QtSql
 from PyQt5.QtWidgets import *
-from PyQt5.QtGui import QIcon
 from model import Model
 from views import *
 from PyQt5.QtSql import QSqlRelationalDelegate
 from PyQt5.QtCore import Qt, QTranslator, QLocale, QLibraryInfo, QSettings, QMimeDatabase
-import sys, os, configparser
+import sys, os
 
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
@@ -85,12 +83,12 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage('Ready')
         self.model = Model(self)
 
-        self.setMinimumSize(1024,600)
+        self.setMinimumSize(1024, 600)
         self.show()
-        
+
         self.retrieve_db()
 
-    def enable_db_actions(self, b = True):
+    def enable_db_actions(self, b=True):
         for name, action in self.db_actions.items():
             action.setEnabled(b)
 
@@ -256,10 +254,10 @@ class MainWindow(QMainWindow):
         if path:
             if os.path.exists(path):
                 self.connect_db(path)
-        
+
     def create_new_db(self):
-        code, ok = QInputDialog.getInt(self, 'Code centre',
-            'Entrez le code de votre centre:')
+        code, ok = QInputDialog.getInt(
+            self, 'Code centre', 'Entrez le code de votre centre:')
         if ok and code != '':
             #db_name, format_ = QFileDialog.getSaveFileName(
             #    self,
@@ -338,11 +336,11 @@ class MainWindow(QMainWindow):
         self.piece_comptable.show()
 
     def add_fournisseur(self):
-        name, ok = QInputDialog.getText(self, 'Fournisseur',
-            'Nom du fournisseur:')
+        name, ok = QInputDialog.getText(
+            self, 'Fournisseur', 'Nom du fournisseur:')
         if ok and name != "":
-            res = self.model.add({'nom':name}, 'fournisseurs')
-            if res == True:
+            res = self.model.add({'nom': name}, 'fournisseurs')
+            if res:
                 return True
             elif res == "UNIQUE constraint failed: fournisseurs.NOM":
                 QMessageBox.warning(self, "Erreur", "Ce nom existe déjà.")
@@ -352,23 +350,23 @@ class MainWindow(QMainWindow):
     def add_code_compta(self):
         name, code, ok = CodeComptaDialog.getCode()
         if ok and name != "":
-            datas = {'code':code, 'nom':name}
+            datas = {'code': code, 'nom': name}
             response = self.model.add(datas, 'codecompta')
             if response == "UNIQUE constraint failed: codecompta.CODE":
                 QMessageBox.warning(self, "Erreur", "Ce code existe déjà")
 
     def add_input(self):
-        res = AddInputDialog(self)
+        AddInputDialog(self)
 
     def add_retrait(self):
-        res = AddRetraitDialog(self)
+        AddRetraitDialog(self)
 
     def about_d(self):
-        QMessageBox.information(self, "Diabolik Compta","version 0.0.6")
+        QMessageBox.information(self, "Diabolik Compta", "version 0.0.6")
 
 app = QApplication(sys.argv)
 translator = QTranslator()
-translator.load('qt_' + QLocale.system().name(), 
+translator.load('qt_' + QLocale.system().name(),
     QLibraryInfo.location(QLibraryInfo.TranslationsPath))
 app.installTranslator(translator)
 main_window = MainWindow()
