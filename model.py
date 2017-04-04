@@ -11,7 +11,7 @@ class Model(QSqlQueryModel):
         super(Model, self).__init__(parent)
         self.db = QSqlDatabase.addDatabase('QSQLITE')
 
-    def create_db(self, db_name, code_centre, ):
+    def create_db(self, db_name, code_centre):
         connected = self.connect_db(db_name)
         if connected:
             with open('create_db.sql', 'r') as f:

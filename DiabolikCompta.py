@@ -259,11 +259,6 @@ class MainWindow(QMainWindow):
         code, ok = QInputDialog.getInt(
             self, 'Code centre', 'Entrez le code de votre centre:')
         if ok and code != '':
-            #db_name, format_ = QFileDialog.getSaveFileName(
-            #    self,
-            #    "Enregistrer une nouvelle base",
-            #    None,
-            #    'DB(*.db)')
             user_path = os.path.expanduser('~')
             user_folder_name = "DiabolikCompta"
             if not os.path.isdir(os.path.join(user_path, user_folder_name)):

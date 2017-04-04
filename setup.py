@@ -12,7 +12,7 @@ else:
 build_exe_options = {'build_exe': {
         "excludes": [],
         "includes": [],
-        "include_files": ['design'],
+        "include_files": ['design', 'create_db.sql'],
         "optimize": 2}
         }
 
