@@ -8,18 +8,36 @@ if sys.platform == "win32":
 	base = "Win32GUI"
 else:
         base = None
+		
+shortcut_table = [
+    ("DesktopShortcut",        # Shortcut
+     "DesktopFolder",          # Directory_
+     "Diabolik Compta",           # Name
+     "TARGETDIR",              # Component_
+     "[TARGETDIR]DiabolikCompta.exe",# Target
+     None,                     # Arguments
+     None,                     # Description
+     None,                     # Hotkey
+     None,                     # Icon
+     None,                     # IconIndex
+     None,                     # ShowCmd
+     'TARGETDIR'               # WkDir
+     )
+    ]
+msi_data = {'Shortcut':shortcut_table}
 
-build_exe_options = {'build_exe': {
+options = {'build_exe': {
         "excludes": [],
         "includes": [],
         "include_files": ['design', 'create_db.sql'],
-        "optimize": 2}
-        }
+        "optimize": 2},
+		'bdist_msi':{'data': msi_data}
+         }
 
 setup(  name = "DiabolikCompta",
         version = VERSION,
         description = "Diabolik Compta",
-        options = build_exe_options,
+        options = options,
         executables = [Executable("DiabolikCompta.py",
                                   base=base,
                                   icon="icon.ico",
