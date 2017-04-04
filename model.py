@@ -14,7 +14,7 @@ class Model(QSqlQueryModel):
     def create_db(self, db_name, code_centre):
         connected = self.connect_db(db_name)
         if connected:
-            with open('create_db.sql', 'r') as f:
+            with open('create_db.sql', 'r', encoding='utf-8') as f:
             # NOTE: With QT SQLite driver, we cannot execute many requests in
             # one time. So, we parse the file:
                 r = f.read()
