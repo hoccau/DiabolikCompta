@@ -88,11 +88,15 @@ class Model(QSqlQueryModel):
             ["type_payement", "id", "NOM", 4, "Moyen de payement"])
         self.tables['pieces_comptables'].setHeaderData(
                 0, Qt.Horizontal, "Identification")
+        self.tables['pieces_comptables'].setHeaderData(
+                5, Qt.Horizontal, "Numero de chèque")
         self.tables['subdivisions'] = TableModel(self, self.db)
         self.tables['subdivisions'].setTable('subdivisions')
         self.tables['subdivisions'].relational_mapping(
             ["codecompta", "code", "NOM", 3, "Catégorie comptable"],
             ["code_analytique", "code", "NOM", 4, "Catégorie analytique"])
+        self.tables['pieces_comptables'].setHeaderData(
+                2, Qt.Horizontal, "N° de pièce comptable")
         self.tables['inputs'] = InputsModel(self, self.db)
         self.tables['retraits'] = RetraitsModel(self, self.db)
         self.qt_table_infos = InfosModel(self, self.db)

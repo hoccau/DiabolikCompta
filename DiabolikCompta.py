@@ -241,6 +241,7 @@ class MainWindow(QMainWindow):
             "",
             "Bases de données (*.db)")
         if file_name[0]:
+            self.close_db()
             self.connect_db(file_name[0])
 
     def close_db(self):
@@ -267,6 +268,7 @@ class MainWindow(QMainWindow):
                 user_path,
                 'DiabolikCompta',
                 'centre'+str(code)+'.db')
+            self.close_db()
             if path:
                 if path.split('.')[-1] != 'db':
                     path += '.db'
@@ -357,7 +359,7 @@ class MainWindow(QMainWindow):
         AddRetraitDialog(self)
 
     def about_d(self):
-        QMessageBox.information(self, "Diabolik Compta", "version 0.0.6")
+        QMessageBox.information(self, "Diabolik Compta", "version 0.0.7")
 
 app = QApplication(sys.argv)
 translator = QTranslator()
