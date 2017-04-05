@@ -241,7 +241,8 @@ class MainWindow(QMainWindow):
             "",
             "Bases de données (*.db)")
         if file_name[0]:
-            self.close_db()
+            if self.model.db.isOpen():
+                self.close_db()
             self.connect_db(file_name[0])
 
     def close_db(self):
@@ -268,7 +269,8 @@ class MainWindow(QMainWindow):
                 user_path,
                 'DiabolikCompta',
                 'centre'+str(code)+'.db')
-            self.close_db()
+            if self.model.db.isOpen():
+                self.close_db()
             if path:
                 if path.split('.')[-1] != 'db':
                     path += '.db'
