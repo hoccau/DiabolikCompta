@@ -361,7 +361,7 @@ class MainWindow(QMainWindow):
         AddRetraitDialog(self)
 
     def about_d(self):
-        QMessageBox.information(self, "Diabolik Compta", "version 0.0.7")
+        QMessageBox.information(self, "Diabolik Compta", "version 0.0.8")
 
 app = QApplication(sys.argv)
 translator = QTranslator()
